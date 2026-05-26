@@ -1,0 +1,1 @@
+- [CipherVault Auth Setup](ciphervault-auth.md) — Clerk (Replit-managed) wired; admin role stored in users.role; first user to sign up needs manual role=admin via DB.

@@ -9,7 +9,6 @@ import * as zod from 'zod';
 
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -226,6 +225,336 @@ export const AddToWatchlistBody = zod.object({
  */
 export const RemoveFromWatchlistParams = zod.object({
   "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get current user profile
+ */
+export const GetMeResponse = zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "email": zod.string(),
+  "username": zod.string().nullish(),
+  "role": zod.string(),
+  "balance": zod.number(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Sync Clerk user to local DB (JIT provisioning)
+ */
+export const SyncUserBody = zod.object({
+  "clerkId": zod.string(),
+  "email": zod.string(),
+  "username": zod.string().optional()
+})
+
+export const SyncUserResponse = zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "email": zod.string(),
+  "username": zod.string().nullish(),
+  "role": zod.string(),
+  "balance": zod.number(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List my deposits
+ */
+export const ListDepositsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "amount": zod.number(),
+  "method": zod.string(),
+  "status": zod.string(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date().optional()
+})
+export const ListDepositsResponse = zod.array(ListDepositsResponseItem)
+
+
+/**
+ * @summary Request a deposit
+ */
+export const CreateDepositBody = zod.object({
+  "amount": zod.number(),
+  "method": zod.string()
+})
+
+
+/**
+ * @summary List my withdrawals
+ */
+export const ListWithdrawalsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "amount": zod.number(),
+  "method": zod.string(),
+  "address": zod.string(),
+  "status": zod.string(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date().optional()
+})
+export const ListWithdrawalsResponse = zod.array(ListWithdrawalsResponseItem)
+
+
+/**
+ * @summary Request a withdrawal
+ */
+export const CreateWithdrawalBody = zod.object({
+  "amount": zod.number(),
+  "method": zod.string(),
+  "address": zod.string()
+})
+
+
+/**
+ * @summary List active investment plans
+ */
+export const ListPlansResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "minAmount": zod.number(),
+  "maxAmount": zod.number().nullish(),
+  "returnPercent": zod.number(),
+  "durationDays": zod.number(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+export const ListPlansResponse = zod.array(ListPlansResponseItem)
+
+
+/**
+ * @summary List my investments
+ */
+export const ListMyInvestmentsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "planId": zod.number(),
+  "planName": zod.string().optional(),
+  "amount": zod.number(),
+  "expectedReturn": zod.number(),
+  "status": zod.string(),
+  "startDate": zod.coerce.date(),
+  "maturityDate": zod.coerce.date(),
+  "completedAt": zod.coerce.date().nullish()
+})
+export const ListMyInvestmentsResponse = zod.array(ListMyInvestmentsResponseItem)
+
+
+/**
+ * @summary Invest in a plan
+ */
+export const CreateInvestmentBody = zod.object({
+  "planId": zod.number(),
+  "amount": zod.number()
+})
+
+
+/**
+ * @summary Platform-wide statistics
+ */
+export const GetAdminStatsResponse = zod.object({
+  "totalUsers": zod.number(),
+  "totalDeposited": zod.number(),
+  "totalWithdrawn": zod.number(),
+  "totalInvested": zod.number(),
+  "pendingDeposits": zod.number(),
+  "pendingWithdrawals": zod.number(),
+  "activeInvestments": zod.number()
+})
+
+
+/**
+ * @summary List all users
+ */
+export const ListAdminUsersResponseItem = zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "email": zod.string(),
+  "username": zod.string().nullish(),
+  "role": zod.string(),
+  "balance": zod.number(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAdminUsersResponse = zod.array(ListAdminUsersResponseItem)
+
+
+/**
+ * @summary Update user role or status
+ */
+export const UpdateAdminUserParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateAdminUserBody = zod.object({
+  "role": zod.string().optional(),
+  "isActive": zod.boolean().optional()
+})
+
+export const UpdateAdminUserResponse = zod.object({
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "email": zod.string(),
+  "username": zod.string().nullish(),
+  "role": zod.string(),
+  "balance": zod.number(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List all deposits
+ */
+export const ListAdminDepositsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userEmail": zod.string(),
+  "amount": zod.number(),
+  "method": zod.string(),
+  "status": zod.string(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAdminDepositsResponse = zod.array(ListAdminDepositsResponseItem)
+
+
+/**
+ * @summary Approve or reject a deposit
+ */
+export const UpdateAdminDepositParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateAdminDepositBody = zod.object({
+  "status": zod.string(),
+  "notes": zod.string().optional()
+})
+
+export const UpdateAdminDepositResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userEmail": zod.string(),
+  "amount": zod.number(),
+  "method": zod.string(),
+  "status": zod.string(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List all withdrawals
+ */
+export const ListAdminWithdrawalsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userEmail": zod.string(),
+  "amount": zod.number(),
+  "method": zod.string(),
+  "address": zod.string(),
+  "status": zod.string(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAdminWithdrawalsResponse = zod.array(ListAdminWithdrawalsResponseItem)
+
+
+/**
+ * @summary Approve or reject a withdrawal
+ */
+export const UpdateAdminWithdrawalParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateAdminWithdrawalBody = zod.object({
+  "status": zod.string(),
+  "notes": zod.string().optional()
+})
+
+export const UpdateAdminWithdrawalResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userEmail": zod.string(),
+  "amount": zod.number(),
+  "method": zod.string(),
+  "address": zod.string(),
+  "status": zod.string(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List all user investments
+ */
+export const ListAdminInvestmentsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userEmail": zod.string(),
+  "planId": zod.number(),
+  "planName": zod.string(),
+  "amount": zod.number(),
+  "expectedReturn": zod.number(),
+  "status": zod.string(),
+  "startDate": zod.coerce.date(),
+  "maturityDate": zod.coerce.date(),
+  "completedAt": zod.coerce.date().nullish()
+})
+export const ListAdminInvestmentsResponse = zod.array(ListAdminInvestmentsResponseItem)
+
+
+/**
+ * @summary Create an investment plan
+ */
+export const CreateAdminPlanBody = zod.object({
+  "name": zod.string(),
+  "description": zod.string(),
+  "minAmount": zod.number(),
+  "maxAmount": zod.number().optional(),
+  "returnPercent": zod.number(),
+  "durationDays": zod.number()
+})
+
+
+/**
+ * @summary Update an investment plan
+ */
+export const UpdateAdminPlanParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateAdminPlanBody = zod.object({
+  "name": zod.string().optional(),
+  "description": zod.string().optional(),
+  "minAmount": zod.number().optional(),
+  "maxAmount": zod.number().optional(),
+  "returnPercent": zod.number().optional(),
+  "durationDays": zod.number().optional(),
+  "isActive": zod.boolean().optional()
+})
+
+export const UpdateAdminPlanResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "minAmount": zod.number(),
+  "maxAmount": zod.number().nullish(),
+  "returnPercent": zod.number(),
+  "durationDays": zod.number(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date()
 })
 
 

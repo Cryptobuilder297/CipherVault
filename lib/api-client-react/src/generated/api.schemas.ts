@@ -115,3 +115,180 @@ export interface WatchlistInput {
   name: string;
 }
 
+export interface UserProfile {
+  id: number;
+  clerkId: string;
+  email: string;
+  /** @nullable */
+  username?: string | null;
+  role: string;
+  balance: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface SyncUserInput {
+  clerkId: string;
+  email: string;
+  username?: string;
+}
+
+export interface Deposit {
+  id: number;
+  userId: number;
+  amount: number;
+  method: string;
+  status: string;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface DepositInput {
+  amount: number;
+  method: string;
+}
+
+export interface Withdrawal {
+  id: number;
+  userId: number;
+  amount: number;
+  method: string;
+  address: string;
+  status: string;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface WithdrawalInput {
+  amount: number;
+  method: string;
+  address: string;
+}
+
+export interface InvestmentPlan {
+  id: number;
+  name: string;
+  description: string;
+  minAmount: number;
+  /** @nullable */
+  maxAmount?: number | null;
+  returnPercent: number;
+  durationDays: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface PlanInput {
+  name: string;
+  description: string;
+  minAmount: number;
+  maxAmount?: number;
+  returnPercent: number;
+  durationDays: number;
+}
+
+export interface PlanUpdate {
+  name?: string;
+  description?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  returnPercent?: number;
+  durationDays?: number;
+  isActive?: boolean;
+}
+
+export interface UserInvestment {
+  id: number;
+  userId: number;
+  planId: number;
+  planName?: string;
+  amount: number;
+  expectedReturn: number;
+  status: string;
+  startDate: string;
+  maturityDate: string;
+  /** @nullable */
+  completedAt?: string | null;
+}
+
+export interface InvestmentInput {
+  planId: number;
+  amount: number;
+}
+
+export interface AdminStats {
+  totalUsers: number;
+  totalDeposited: number;
+  totalWithdrawn: number;
+  totalInvested: number;
+  pendingDeposits: number;
+  pendingWithdrawals: number;
+  activeInvestments: number;
+}
+
+export interface AdminUser {
+  id: number;
+  clerkId: string;
+  email: string;
+  /** @nullable */
+  username?: string | null;
+  role: string;
+  balance: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface AdminUserUpdate {
+  role?: string;
+  isActive?: boolean;
+}
+
+export interface StatusUpdate {
+  status: string;
+  notes?: string;
+}
+
+export interface AdminDeposit {
+  id: number;
+  userId: number;
+  userEmail: string;
+  amount: number;
+  method: string;
+  status: string;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface AdminWithdrawal {
+  id: number;
+  userId: number;
+  userEmail: string;
+  amount: number;
+  method: string;
+  address: string;
+  status: string;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface AdminInvestment {
+  id: number;
+  userId: number;
+  userEmail: string;
+  planId: number;
+  planName: string;
+  amount: number;
+  expectedReturn: number;
+  status: string;
+  startDate: string;
+  maturityDate: string;
+  /** @nullable */
+  completedAt?: string | null;
+}
+

@@ -6,16 +6,34 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './adminDeposit';
+export * from './adminInvestment';
+export * from './adminStats';
+export * from './adminUser';
+export * from './adminUserUpdate';
+export * from './adminWithdrawal';
+export * from './deposit';
+export * from './depositInput';
 export * from './healthStatus';
 export * from './holding';
 export * from './holdingInput';
 export * from './holdingPerf';
 export * from './holdingUpdate';
+export * from './investmentInput';
+export * from './investmentPlan';
 export * from './marketCoin';
+export * from './planInput';
+export * from './planUpdate';
 export * from './portfolioSummary';
+export * from './statusUpdate';
+export * from './syncUserInput';
 export * from './transaction';
 export * from './transactionInput';
 export * from './transactionInputType';
 export * from './transactionType';
+export * from './userInvestment';
+export * from './userProfile';
 export * from './watchlistInput';
 export * from './watchlistItem';
+export * from './withdrawal';
+export * from './withdrawalInput';

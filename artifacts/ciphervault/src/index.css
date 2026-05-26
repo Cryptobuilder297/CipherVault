@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@400;500;600;700;800&display=swap');
-
+@layer theme, base, clerk, components, utilities;
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -161,6 +161,11 @@
 
 .dark {
   /* Same as root since we are forcing dark mode */
+}
+
+.cl-formFieldInput::placeholder {
+  color: #4a5568;
+  opacity: 1;
 }
 
 @layer base {

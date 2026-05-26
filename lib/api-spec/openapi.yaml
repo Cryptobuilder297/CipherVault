@@ -17,13 +17,24 @@ tags:
     description: Transaction operations
   - name: watchlist
     description: Watchlist operations
+  - name: users
+    description: User profile operations
+  - name: deposits
+    description: Deposit operations
+  - name: withdrawals
+    description: Withdrawal operations
+  - name: plans
+    description: Investment plan operations
+  - name: investments
+    description: User investment operations
+  - name: admin
+    description: Admin operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -264,6 +275,343 @@ paths:
         "204":
           description: Removed
 
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+
+  /users/sync:
+    post:
+      operationId: syncUser
+      tags: [users]
+      summary: Sync Clerk user to local DB (JIT provisioning)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SyncUserInput"
+      responses:
+        "200":
+          description: Synced user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /deposits:
+    get:
+      operationId: listDeposits
+      tags: [deposits]
+      summary: List my deposits
+      responses:
+        "200":
+          description: Deposits
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Deposit"
+    post:
+      operationId: createDeposit
+      tags: [deposits]
+      summary: Request a deposit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DepositInput"
+      responses:
+        "201":
+          description: Deposit created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deposit"
+
+  /withdrawals:
+    get:
+      operationId: listWithdrawals
+      tags: [withdrawals]
+      summary: List my withdrawals
+      responses:
+        "200":
+          description: Withdrawals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Withdrawal"
+    post:
+      operationId: createWithdrawal
+      tags: [withdrawals]
+      summary: Request a withdrawal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WithdrawalInput"
+      responses:
+        "201":
+          description: Withdrawal created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Withdrawal"
+
+  /plans:
+    get:
+      operationId: listPlans
+      tags: [plans]
+      summary: List active investment plans
+      responses:
+        "200":
+          description: Plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InvestmentPlan"
+
+  /investments:
+    get:
+      operationId: listMyInvestments
+      tags: [investments]
+      summary: List my investments
+      responses:
+        "200":
+          description: My investments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserInvestment"
+    post:
+      operationId: createInvestment
+      tags: [investments]
+      summary: Invest in a plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvestmentInput"
+      responses:
+        "201":
+          description: Investment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInvestment"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Platform-wide statistics
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/users:
+    get:
+      operationId: listAdminUsers
+      tags: [admin]
+      summary: List all users
+      responses:
+        "200":
+          description: Users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUser"
+
+  /admin/users/{id}:
+    patch:
+      operationId: updateAdminUser
+      tags: [admin]
+      summary: Update user role or status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUserUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+
+  /admin/deposits:
+    get:
+      operationId: listAdminDeposits
+      tags: [admin]
+      summary: List all deposits
+      responses:
+        "200":
+          description: All deposits
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminDeposit"
+
+  /admin/deposits/{id}:
+    patch:
+      operationId: updateAdminDeposit
+      tags: [admin]
+      summary: Approve or reject a deposit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusUpdate"
+      responses:
+        "200":
+          description: Updated deposit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDeposit"
+
+  /admin/withdrawals:
+    get:
+      operationId: listAdminWithdrawals
+      tags: [admin]
+      summary: List all withdrawals
+      responses:
+        "200":
+          description: All withdrawals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminWithdrawal"
+
+  /admin/withdrawals/{id}:
+    patch:
+      operationId: updateAdminWithdrawal
+      tags: [admin]
+      summary: Approve or reject a withdrawal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusUpdate"
+      responses:
+        "200":
+          description: Updated withdrawal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminWithdrawal"
+
+  /admin/investments:
+    get:
+      operationId: listAdminInvestments
+      tags: [admin]
+      summary: List all user investments
+      responses:
+        "200":
+          description: All investments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminInvestment"
+
+  /admin/plans:
+    post:
+      operationId: createAdminPlan
+      tags: [admin]
+      summary: Create an investment plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanInput"
+      responses:
+        "201":
+          description: Created plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestmentPlan"
+
+  /admin/plans/{id}:
+    patch:
+      operationId: updateAdminPlan
+      tags: [admin]
+      summary: Update an investment plan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanUpdate"
+      responses:
+        "200":
+          description: Updated plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestmentPlan"
+
 components:
   schemas:
     HealthStatus:
@@ -271,8 +619,7 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
     MarketCoin:
       type: object
@@ -442,3 +789,334 @@ components:
           type: string
         name:
           type: string
+
+    UserProfile:
+      type: object
+      required: [id, clerkId, email, role, balance, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        clerkId:
+          type: string
+        email:
+          type: string
+        username:
+          type: ["string", "null"]
+        role:
+          type: string
+        balance:
+          type: number
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    SyncUserInput:
+      type: object
+      required: [clerkId, email]
+      properties:
+        clerkId:
+          type: string
+        email:
+          type: string
+        username:
+          type: string
+
+    Deposit:
+      type: object
+      required: [id, userId, amount, method, status, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        amount:
+          type: number
+        method:
+          type: string
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    DepositInput:
+      type: object
+      required: [amount, method]
+      properties:
+        amount:
+          type: number
+        method:
+          type: string
+
+    Withdrawal:
+      type: object
+      required: [id, userId, amount, method, address, status, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        amount:
+          type: number
+        method:
+          type: string
+        address:
+          type: string
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    WithdrawalInput:
+      type: object
+      required: [amount, method, address]
+      properties:
+        amount:
+          type: number
+        method:
+          type: string
+        address:
+          type: string
+
+    InvestmentPlan:
+      type: object
+      required: [id, name, description, minAmount, returnPercent, durationDays, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        minAmount:
+          type: number
+        maxAmount:
+          type: ["number", "null"]
+        returnPercent:
+          type: number
+        durationDays:
+          type: integer
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    PlanInput:
+      type: object
+      required: [name, description, minAmount, returnPercent, durationDays]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        minAmount:
+          type: number
+        maxAmount:
+          type: number
+        returnPercent:
+          type: number
+        durationDays:
+          type: integer
+
+    PlanUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        minAmount:
+          type: number
+        maxAmount:
+          type: number
+        returnPercent:
+          type: number
+        durationDays:
+          type: integer
+        isActive:
+          type: boolean
+
+    UserInvestment:
+      type: object
+      required: [id, userId, planId, amount, expectedReturn, status, startDate, maturityDate]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        planId:
+          type: integer
+        planName:
+          type: string
+        amount:
+          type: number
+        expectedReturn:
+          type: number
+        status:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        maturityDate:
+          type: string
+          format: date-time
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    InvestmentInput:
+      type: object
+      required: [planId, amount]
+      properties:
+        planId:
+          type: integer
+        amount:
+          type: number
+
+    AdminStats:
+      type: object
+      required: [totalUsers, totalDeposited, totalWithdrawn, totalInvested, pendingDeposits, pendingWithdrawals, activeInvestments]
+      properties:
+        totalUsers:
+          type: integer
+        totalDeposited:
+          type: number
+        totalWithdrawn:
+          type: number
+        totalInvested:
+          type: number
+        pendingDeposits:
+          type: integer
+        pendingWithdrawals:
+          type: integer
+        activeInvestments:
+          type: integer
+
+    AdminUser:
+      type: object
+      required: [id, clerkId, email, role, balance, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        clerkId:
+          type: string
+        email:
+          type: string
+        username:
+          type: ["string", "null"]
+        role:
+          type: string
+        balance:
+          type: number
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    AdminUserUpdate:
+      type: object
+      properties:
+        role:
+          type: string
+        isActive:
+          type: boolean
+
+    StatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+        notes:
+          type: string
+
+    AdminDeposit:
+      type: object
+      required: [id, userId, userEmail, amount, method, status, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userEmail:
+          type: string
+        amount:
+          type: number
+        method:
+          type: string
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    AdminWithdrawal:
+      type: object
+      required: [id, userId, userEmail, amount, method, address, status, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userEmail:
+          type: string
+        amount:
+          type: number
+        method:
+          type: string
+        address:
+          type: string
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    AdminInvestment:
+      type: object
+      required: [id, userId, userEmail, planId, planName, amount, expectedReturn, status, startDate, maturityDate]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userEmail:
+          type: string
+        planId:
+          type: integer
+        planName:
+          type: string
+        amount:
+          type: number
+        expectedReturn:
+          type: number
+        status:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        maturityDate:
+          type: string
+          format: date-time
+        completedAt:
+          type: ["string", "null"]
+          format: date-time

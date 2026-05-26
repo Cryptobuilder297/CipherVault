@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useClerk, useUser, Show } from "@clerk/react";
 import { useGetMe } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
+import { formatCurrency } from "@/lib/format";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -22,7 +23,7 @@ const adminNavItem = { name: "Admin", href: "/admin", icon: ShieldCheck };
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { signOut } = useClerk();
-  const { user } = useUser();
+  const { user, isSignedIn } = useUser();
   const { data: dbUser } = useGetMe();
 
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -59,6 +60,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
             );
           })}
         </div>
+
+        {/* Balance widget at bottom of sidebar */}
+        {isSignedIn && dbUser && (
+          <div className="p-4 border-t border-border">
+            <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 space-y-1">
+              <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Vault Balance</p>
+              <p className="text-xl font-bold font-mono text-primary">{formatCurrency(dbUser.balance)}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Main Content */}
@@ -69,7 +80,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex items-center gap-4">
             <Show when="signed-in">
-              <span className="text-sm text-muted-foreground">
+              {/* Mobile balance display */}
+              {dbUser && (
+                <span className="text-sm font-mono text-primary font-medium md:hidden">
+                  {formatCurrency(dbUser.balance)}
+                </span>
+              )}
+              <span className="text-sm text-muted-foreground hidden md:block">
                 {user?.primaryEmailAddress?.emailAddress}
               </span>
               <Button variant="outline" size="sm" onClick={() => signOut({ redirectUrl: basePath || "/" })}>

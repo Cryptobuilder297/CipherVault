@@ -1,12 +1,17 @@
-import { useGetPortfolioSummary, useListTransactions } from "@workspace/api-client-react";
+import { useGetPortfolioSummary, useListTransactions, useGetMe } from "@workspace/api-client-react";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpRight, ArrowDownRight, Activity } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Activity, Wallet, TrendingUp, ArrowDownCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
+import { useUser } from "@clerk/react";
 
 export default function Dashboard() {
   const { data: summary, isLoading: isSummaryLoading } = useGetPortfolioSummary();
   const { data: transactions, isLoading: isTransactionsLoading } = useListTransactions();
+  const { data: me } = useGetMe();
+  const { isSignedIn } = useUser();
 
   if (isSummaryLoading) {
     return (
@@ -28,10 +33,48 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
       </div>
 
+      {/* Account Balance — top prominence for signed-in users */}
+      {isSignedIn && me && (
+        <div className="rounded-xl border border-primary/30 bg-gradient-to-r from-primary/10 to-primary/5 p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <p className="text-sm font-mono text-muted-foreground uppercase tracking-wider mb-1">Vault Balance</p>
+              <p className="text-4xl font-bold font-mono text-primary">{formatCurrency(me.balance)}</p>
+              <p className="text-sm text-muted-foreground mt-1">Available for investment or withdrawal</p>
+            </div>
+            <div className="flex gap-3">
+              <Link href="/deposits">
+                <Button size="sm" className="gap-2">
+                  <ArrowDownCircle className="h-4 w-4" />
+                  Deposit
+                </Button>
+              </Link>
+              <Link href="/plans">
+                <Button size="sm" variant="outline" className="gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Invest
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CTA for signed-out users */}
+      {!isSignedIn && (
+        <div className="rounded-xl border border-primary/30 bg-gradient-to-r from-primary/10 to-primary/5 p-6 text-center">
+          <p className="text-lg font-medium mb-2">Start growing your crypto portfolio</p>
+          <p className="text-muted-foreground text-sm mb-4">Sign in to manage your vault balance, deposits, and investments.</p>
+          <Link href="/sign-in">
+            <Button>Get Started</Button>
+          </Link>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="bg-card/50 border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Value</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Portfolio Value</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-mono">{formatCurrency(summary.totalValue)}</div>
@@ -139,7 +182,42 @@ export default function Dashboard() {
                     </div>
                   </div>
                 )}
+                {!summary.topGainer && !summary.topLoser && (
+                  <div className="text-center py-4 text-muted-foreground text-sm">No market data available</div>
+                )}
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/50 border-border">
+            <CardHeader>
+              <CardTitle className="text-sm">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-3">
+              <Link href="/deposits">
+                <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col text-xs">
+                  <ArrowDownCircle className="h-5 w-5 text-emerald-400" />
+                  Deposit
+                </Button>
+              </Link>
+              <Link href="/plans">
+                <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col text-xs">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Invest
+                </Button>
+              </Link>
+              <Link href="/portfolio">
+                <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col text-xs">
+                  <Wallet className="h-5 w-5 text-blue-400" />
+                  Portfolio
+                </Button>
+              </Link>
+              <Link href="/investments">
+                <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col text-xs">
+                  <Activity className="h-5 w-5 text-amber-400" />
+                  My Returns
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>

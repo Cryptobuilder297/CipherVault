@@ -16,9 +16,9 @@ router.get("/admin/stats", requireAdmin, async (req, res) => {
 
   res.json({
     totalUsers: totalUsers.count,
-    totalDeposited: parseFloat(totalDeposited.total ?? "0"),
-    totalWithdrawn: parseFloat(totalWithdrawn.total ?? "0"),
-    totalInvested: parseFloat(totalInvested.total ?? "0"),
+    totalDeposited: parseFloat(String(totalDeposited.total ?? "0")),
+    totalWithdrawn: parseFloat(String(totalWithdrawn.total ?? "0")),
+    totalInvested: parseFloat(String(totalInvested.total ?? "0")),
     pendingDeposits: pendingDep.count,
     pendingWithdrawals: pendingWit.count,
     activeInvestments: activeInv.count,
@@ -66,11 +66,8 @@ router.patch("/admin/deposits/:id", requireAdmin, async (req, res) => {
   const [dep] = await db.select().from(depositsTable).where(eq(depositsTable.id, id));
   if (!dep) { res.status(404).json({ error: "Not found" }); return; }
 
+  // Credit balance on approval (only once, if transitioning to approved)
   if (status === "approved" && dep.status !== "approved") {
-    await db.update(usersTable)
-      .set({ balance: String(parseFloat(dep.amount)) })
-      .where(eq(usersTable.id, dep.userId));
-
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, dep.userId));
     if (user) {
       const newBalance = parseFloat(user.balance) + parseFloat(dep.amount);
@@ -83,7 +80,14 @@ router.patch("/admin/deposits/:id", requireAdmin, async (req, res) => {
 
   const [row] = await db.update(depositsTable).set(updates).where(eq(depositsTable.id, id)).returning();
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, row.userId));
-  res.json({ ...row, amount: parseFloat(row.amount), createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString(), notes: row.notes ?? null, userEmail: user?.email ?? "" });
+  res.json({
+    ...row,
+    amount: parseFloat(row.amount),
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    notes: row.notes ?? null,
+    userEmail: user?.email ?? "",
+  });
 });
 
 router.get("/admin/withdrawals", requireAdmin, async (req, res) => {
@@ -107,13 +111,31 @@ router.patch("/admin/withdrawals/:id", requireAdmin, async (req, res) => {
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const { status, notes } = req.body as { status: string; notes?: string };
 
+  const [wit] = await db.select().from(withdrawalsTable).where(eq(withdrawalsTable.id, id));
+  if (!wit) { res.status(404).json({ error: "Not found" }); return; }
+
+  // Refund balance if rejection (balance was already deducted at request time)
+  if (status === "rejected" && wit.status === "pending") {
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, wit.userId));
+    if (user) {
+      const newBalance = parseFloat(user.balance) + parseFloat(wit.amount);
+      await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, user.id));
+    }
+  }
+
   const updates: Partial<typeof withdrawalsTable.$inferInsert> = { status, updatedAt: new Date() };
   if (notes !== undefined) updates.notes = notes;
 
   const [row] = await db.update(withdrawalsTable).set(updates).where(eq(withdrawalsTable.id, id)).returning();
-  if (!row) { res.status(404).json({ error: "Not found" }); return; }
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, row.userId));
-  res.json({ ...row, amount: parseFloat(row.amount), createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString(), notes: row.notes ?? null, userEmail: user?.email ?? "" });
+  res.json({
+    ...row,
+    amount: parseFloat(row.amount),
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    notes: row.notes ?? null,
+    userEmail: user?.email ?? "",
+  });
 });
 
 router.get("/admin/investments", requireAdmin, async (req, res) => {
@@ -146,7 +168,13 @@ router.post("/admin/plans", requireAdmin, async (req, res) => {
     durationDays,
     isActive: true,
   }).returning();
-  res.status(201).json({ ...plan, minAmount: parseFloat(plan.minAmount), maxAmount: plan.maxAmount ? parseFloat(plan.maxAmount) : null, returnPercent: parseFloat(plan.returnPercent), createdAt: plan.createdAt.toISOString() });
+  res.status(201).json({
+    ...plan,
+    minAmount: parseFloat(plan.minAmount),
+    maxAmount: plan.maxAmount ? parseFloat(plan.maxAmount) : null,
+    returnPercent: parseFloat(plan.returnPercent),
+    createdAt: plan.createdAt.toISOString(),
+  });
 });
 
 router.patch("/admin/plans/:id", requireAdmin, async (req, res) => {
@@ -163,7 +191,13 @@ router.patch("/admin/plans/:id", requireAdmin, async (req, res) => {
   if (body.isActive !== undefined) updates.isActive = body.isActive;
   const [plan] = await db.update(investmentPlansTable).set(updates).where(eq(investmentPlansTable.id, id)).returning();
   if (!plan) { res.status(404).json({ error: "Not found" }); return; }
-  res.json({ ...plan, minAmount: parseFloat(plan.minAmount), maxAmount: plan.maxAmount ? parseFloat(plan.maxAmount) : null, returnPercent: parseFloat(plan.returnPercent), createdAt: plan.createdAt.toISOString() });
+  res.json({
+    ...plan,
+    minAmount: parseFloat(plan.minAmount),
+    maxAmount: plan.maxAmount ? parseFloat(plan.maxAmount) : null,
+    returnPercent: parseFloat(plan.returnPercent),
+    createdAt: plan.createdAt.toISOString(),
+  });
 });
 
 export default router;

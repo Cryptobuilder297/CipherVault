@@ -1,26 +1,32 @@
 import { useState } from "react";
 import { formatCurrency, formatPercent } from "@/lib/format";
-import { useListPlans, useCreateInvestment, getListMyInvestmentsQueryKey } from "@workspace/api-client-react";
+import { useListPlans, useCreateInvestment, getListMyInvestmentsQueryKey, useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, TrendingUp, Clock, Shield } from "lucide-react";
+import { Loader2, TrendingUp, Clock, Shield, Infinity } from "lucide-react";
 import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Plans() {
   const { data: plans, isLoading } = useListPlans();
+  const { data: me } = useGetMe();
   const createInvestment = useCreateInvestment();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const { isSignedIn } = useUser();
   const [, setLocation] = useLocation();
-  
+
   const [open, setOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
   const [amount, setAmount] = useState("");
+
+  const activePlans = plans?.filter(p => p.isActive) || [];
+  const currentPlan = activePlans.find(p => p.id === selectedPlan);
 
   const handleInvestClick = (planId: number) => {
     if (!isSignedIn) {
@@ -28,28 +34,50 @@ export default function Plans() {
       return;
     }
     setSelectedPlan(planId);
+    setAmount("");
     setOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPlan) return;
-    
-    createInvestment.mutate({ data: { planId: selectedPlan, amount: Number(amount) } }, {
+
+    const amt = Number(amount);
+    const balance = me?.balance ?? 0;
+    if (amt > balance) {
+      toast({
+        title: "Insufficient Balance",
+        description: `You only have ${formatCurrency(balance)} available. Please deposit more funds first.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createInvestment.mutate({ data: { planId: selectedPlan, amount: amt } }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListMyInvestmentsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
         setOpen(false);
         setAmount("");
+        toast({
+          title: "Investment Activated",
+          description: `${formatCurrency(amt)} invested in ${currentPlan?.name ?? "plan"}. Returns credited at maturity.`,
+        });
         setLocation("/investments");
-      }
+      },
+      onError: (err: any) => {
+        toast({
+          title: "Investment Failed",
+          description: err?.message ?? "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      },
     });
   };
 
   if (isLoading) {
     return <div className="flex justify-center p-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
-
-  const activePlans = plans?.filter(p => p.isActive) || [];
 
   return (
     <div className="space-y-8">
@@ -58,6 +86,12 @@ export default function Plans() {
         <p className="text-muted-foreground text-lg">
           Secure, automated crypto trading strategies tailored to your risk profile.
         </p>
+        {me && (
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm">
+            <span className="text-muted-foreground">Available balance:</span>
+            <span className="font-mono font-bold text-primary">{formatCurrency(me.balance)}</span>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -75,7 +109,7 @@ export default function Plans() {
                 </span>
                 <span className="text-sm text-muted-foreground mt-1">Expected Return</span>
               </div>
-              
+
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="flex items-center gap-2"><Clock className="w-4 h-4" /> Duration</span>
@@ -87,13 +121,15 @@ export default function Plans() {
                 </div>
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4" /> Max Invest</span>
-                  <span className="text-foreground font-mono">{formatCurrency(plan.maxAmount)}</span>
+                  <span className="text-foreground font-mono flex items-center gap-1">
+                    {plan.maxAmount ? formatCurrency(plan.maxAmount) : <><Infinity className="w-4 h-4" /> Unlimited</>}
+                  </span>
                 </div>
               </div>
             </CardContent>
             <CardFooter>
-              <Button 
-                className="w-full font-mono font-bold" 
+              <Button
+                className="w-full font-mono font-bold"
                 onClick={() => handleInvestClick(plan.id)}
               >
                 Invest Now
@@ -106,25 +142,40 @@ export default function Plans() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Complete Investment</DialogTitle>
+            <DialogTitle>Invest in {currentPlan?.name}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+          {me && (
+            <div className="rounded-md bg-muted px-3 py-2 text-sm">
+              Available: <span className="text-primary font-mono font-medium">{formatCurrency(me.balance)}</span>
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="amount">Investment Amount (USD)</Label>
-              <Input 
-                id="amount" 
-                type="number" 
-                value={amount} 
-                onChange={(e) => setAmount(e.target.value)} 
-                required 
-                min={activePlans.find(p => p.id === selectedPlan)?.minAmount}
-                max={activePlans.find(p => p.id === selectedPlan)?.maxAmount}
+              <Input
+                id="amount"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                required
+                min={currentPlan?.minAmount}
+                max={currentPlan?.maxAmount ?? undefined}
+                placeholder={currentPlan ? `Min: ${formatCurrency(currentPlan.minAmount)}` : ""}
               />
-              <p className="text-xs text-muted-foreground">
-                Min: {formatCurrency(activePlans.find(p => p.id === selectedPlan)?.minAmount || 0)} 
-                &nbsp;|&nbsp; 
-                Max: {formatCurrency(activePlans.find(p => p.id === selectedPlan)?.maxAmount || 0)}
-              </p>
+              {currentPlan && (
+                <p className="text-xs text-muted-foreground">
+                  Min: {formatCurrency(currentPlan.minAmount)}
+                  {currentPlan.maxAmount ? ` | Max: ${formatCurrency(currentPlan.maxAmount)}` : " | No maximum"}
+                </p>
+              )}
+              {amount && currentPlan && (
+                <div className="rounded-md bg-emerald-400/5 border border-emerald-400/20 px-3 py-2 text-sm">
+                  <span className="text-muted-foreground">Expected return at maturity: </span>
+                  <span className="text-emerald-400 font-mono font-bold">
+                    {formatCurrency(Number(amount) * (1 + currentPlan.returnPercent / 100))}
+                  </span>
+                </div>
+              )}
             </div>
             <Button type="submit" className="w-full" disabled={createInvestment.isPending}>
               {createInvestment.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

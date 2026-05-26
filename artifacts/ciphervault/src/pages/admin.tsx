@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { formatCurrency } from "@/lib/format";
-import { 
-  useGetAdminStats, 
+import {
+  useGetAdminStats,
   useListAdminUsers, useUpdateAdminUser, getListAdminUsersQueryKey,
   useListAdminDeposits, useUpdateAdminDeposit, getListAdminDepositsQueryKey,
   useListAdminWithdrawals, useUpdateAdminWithdrawal, getListAdminWithdrawalsQueryKey,
-  useListAdminInvestments
+  useListAdminInvestments,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, Users, ArrowDownCircle, ArrowUpCircle, TrendingUp, Check, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminDashboard() {
   const { data: stats, isLoading: statsLoading } = useGetAdminStats();
@@ -73,16 +74,26 @@ export default function AdminDashboard() {
       <Tabs defaultValue="users" className="w-full">
         <TabsList className="grid w-full grid-cols-4 bg-card">
           <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="deposits">Deposits</TabsTrigger>
-          <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
+          <TabsTrigger value="deposits">
+            Deposits
+            {stats && stats.pendingDeposits > 0 && (
+              <span className="ml-2 rounded-full bg-amber-400/20 text-amber-400 text-xs px-1.5 py-0.5">{stats.pendingDeposits}</span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="withdrawals">
+            Withdrawals
+            {stats && stats.pendingWithdrawals > 0 && (
+              <span className="ml-2 rounded-full bg-amber-400/20 text-amber-400 text-xs px-1.5 py-0.5">{stats.pendingWithdrawals}</span>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="investments">Investments</TabsTrigger>
         </TabsList>
-        
+
         <div className="mt-6 border border-border rounded-xl bg-card overflow-hidden">
           <TabsContent value="users" className="m-0">
             <UsersTable queryClient={queryClient} />
           </TabsContent>
-          
+
           <TabsContent value="deposits" className="m-0">
             <DepositsTable queryClient={queryClient} />
           </TabsContent>
@@ -103,17 +114,23 @@ export default function AdminDashboard() {
 function UsersTable({ queryClient }: any) {
   const { data, isLoading } = useListAdminUsers();
   const update = useUpdateAdminUser();
+  const { toast } = useToast();
 
   const handleToggleActive = (id: number, isActive: boolean) => {
     update.mutate({ id, data: { isActive } }, {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: getListAdminUsersQueryKey() })
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: getListAdminUsersQueryKey() }),
+      onError: () => toast({ title: "Update Failed", variant: "destructive" }),
     });
   };
 
   const handleToggleRole = (id: number, currentRole: string) => {
     const role = currentRole === 'admin' ? 'user' : 'admin';
     update.mutate({ id, data: { role } }, {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: getListAdminUsersQueryKey() })
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListAdminUsersQueryKey() });
+        toast({ title: `User role updated to ${role}` });
+      },
+      onError: () => toast({ title: "Update Failed", variant: "destructive" }),
     });
   };
 
@@ -131,26 +148,30 @@ function UsersTable({ queryClient }: any) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data?.map(user => (
+        {!data?.length ? (
+          <TableRow>
+            <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No users yet</TableCell>
+          </TableRow>
+        ) : data.map(user => (
           <TableRow key={user.id}>
             <TableCell>{user.email}</TableCell>
             <TableCell className="font-mono text-sm text-muted-foreground">{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-            <TableCell className="font-mono">{formatCurrency(user.balance)}</TableCell>
+            <TableCell className="font-mono text-primary font-medium">{formatCurrency(user.balance)}</TableCell>
             <TableCell>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => handleToggleRole(user.id, user.role)}
                 disabled={update.isPending}
-                className={user.role === 'admin' ? 'text-primary' : ''}
+                className={user.role === 'admin' ? 'text-primary font-bold' : ''}
               >
                 {user.role}
               </Button>
             </TableCell>
             <TableCell>
-              <Switch 
-                checked={user.isActive} 
-                onCheckedChange={(c) => handleToggleActive(user.id, c)} 
+              <Switch
+                checked={user.isActive}
+                onCheckedChange={(c) => handleToggleActive(user.id, c)}
                 disabled={update.isPending}
               />
             </TableCell>
@@ -164,10 +185,24 @@ function UsersTable({ queryClient }: any) {
 function DepositsTable({ queryClient }: any) {
   const { data, isLoading } = useListAdminDeposits();
   const update = useUpdateAdminDeposit();
+  const { toast } = useToast();
 
-  const handleStatus = (id: number, status: string) => {
+  const handleStatus = (id: number, status: string, amount: number, userEmail: string) => {
     update.mutate({ id, data: { status } }, {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: getListAdminDepositsQueryKey() })
+      onSuccess: () => {
+        // Refresh deposits list + user list (balance updated)
+        queryClient.invalidateQueries({ queryKey: getListAdminDepositsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getListAdminUsersQueryKey() });
+        if (status === 'approved') {
+          toast({
+            title: "Deposit Approved",
+            description: `${formatCurrency(amount)} credited to ${userEmail}'s account.`,
+          });
+        } else {
+          toast({ title: "Deposit Rejected" });
+        }
+      },
+      onError: () => toast({ title: "Action Failed", variant: "destructive" }),
     });
   };
 
@@ -186,12 +221,16 @@ function DepositsTable({ queryClient }: any) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data?.map(d => (
+        {!data?.length ? (
+          <TableRow>
+            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No deposits yet</TableCell>
+          </TableRow>
+        ) : data.map(d => (
           <TableRow key={d.id}>
             <TableCell className="font-mono text-sm">{new Date(d.createdAt).toLocaleDateString()}</TableCell>
-            <TableCell className="text-muted-foreground">{d.userEmail}</TableCell>
+            <TableCell className="text-muted-foreground text-sm">{d.userEmail}</TableCell>
             <TableCell className="font-mono font-medium">{formatCurrency(d.amount)}</TableCell>
-            <TableCell className="capitalize">{d.method.replace('_', ' ')}</TableCell>
+            <TableCell className="capitalize">{d.method.replace(/_/g, ' ')}</TableCell>
             <TableCell>
               <Badge variant="outline" className={d.status === 'pending' ? 'text-amber-400' : d.status === 'approved' ? 'text-emerald-400' : 'text-red-400'}>
                 {d.status}
@@ -200,10 +239,10 @@ function DepositsTable({ queryClient }: any) {
             <TableCell className="text-right">
               {d.status === 'pending' && (
                 <div className="flex justify-end gap-2">
-                  <Button size="icon" variant="ghost" className="text-emerald-400 hover:text-emerald-300" onClick={() => handleStatus(d.id, 'approved')} disabled={update.isPending}>
+                  <Button size="icon" variant="ghost" className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10" onClick={() => handleStatus(d.id, 'approved', d.amount, d.userEmail)} disabled={update.isPending}>
                     <Check className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="text-red-400 hover:text-red-300" onClick={() => handleStatus(d.id, 'rejected')} disabled={update.isPending}>
+                  <Button size="icon" variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-400/10" onClick={() => handleStatus(d.id, 'rejected', d.amount, d.userEmail)} disabled={update.isPending}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
@@ -219,10 +258,20 @@ function DepositsTable({ queryClient }: any) {
 function WithdrawalsTable({ queryClient }: any) {
   const { data, isLoading } = useListAdminWithdrawals();
   const update = useUpdateAdminWithdrawal();
+  const { toast } = useToast();
 
-  const handleStatus = (id: number, status: string) => {
+  const handleStatus = (id: number, status: string, amount: number, userEmail: string) => {
     update.mutate({ id, data: { status } }, {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: getListAdminWithdrawalsQueryKey() })
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListAdminWithdrawalsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getListAdminUsersQueryKey() });
+        if (status === 'approved') {
+          toast({ title: "Withdrawal Approved", description: `${formatCurrency(amount)} approved for ${userEmail}.` });
+        } else {
+          toast({ title: "Withdrawal Rejected", description: `${formatCurrency(amount)} refunded to ${userEmail}'s balance.` });
+        }
+      },
+      onError: () => toast({ title: "Action Failed", variant: "destructive" }),
     });
   };
 
@@ -241,10 +290,14 @@ function WithdrawalsTable({ queryClient }: any) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data?.map(w => (
+        {!data?.length ? (
+          <TableRow>
+            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No withdrawals yet</TableCell>
+          </TableRow>
+        ) : data.map(w => (
           <TableRow key={w.id}>
             <TableCell className="font-mono text-sm">{new Date(w.createdAt).toLocaleDateString()}</TableCell>
-            <TableCell className="text-muted-foreground">{w.userEmail}</TableCell>
+            <TableCell className="text-muted-foreground text-sm">{w.userEmail}</TableCell>
             <TableCell className="font-mono font-medium">{formatCurrency(w.amount)}</TableCell>
             <TableCell className="font-mono text-xs max-w-[150px] truncate" title={w.address}>{w.address}</TableCell>
             <TableCell>
@@ -255,10 +308,10 @@ function WithdrawalsTable({ queryClient }: any) {
             <TableCell className="text-right">
               {w.status === 'pending' && (
                 <div className="flex justify-end gap-2">
-                  <Button size="icon" variant="ghost" className="text-emerald-400 hover:text-emerald-300" onClick={() => handleStatus(w.id, 'approved')} disabled={update.isPending}>
+                  <Button size="icon" variant="ghost" className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-400/10" onClick={() => handleStatus(w.id, 'approved', w.amount, w.userEmail)} disabled={update.isPending}>
                     <Check className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="text-red-400 hover:text-red-300" onClick={() => handleStatus(w.id, 'rejected')} disabled={update.isPending}>
+                  <Button size="icon" variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-400/10" onClick={() => handleStatus(w.id, 'rejected', w.amount, w.userEmail)} disabled={update.isPending}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
@@ -284,20 +337,26 @@ function InvestmentsTable() {
           <TableHead>User</TableHead>
           <TableHead>Plan</TableHead>
           <TableHead>Invested</TableHead>
-          <TableHead>Expected</TableHead>
+          <TableHead>Expected Return</TableHead>
+          <TableHead>Matures</TableHead>
           <TableHead>Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data?.map(inv => (
+        {!data?.length ? (
+          <TableRow>
+            <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No investments yet</TableCell>
+          </TableRow>
+        ) : data.map(inv => (
           <TableRow key={inv.id}>
             <TableCell className="font-mono text-sm">{new Date(inv.startDate).toLocaleDateString()}</TableCell>
-            <TableCell className="text-muted-foreground">{inv.userEmail}</TableCell>
+            <TableCell className="text-muted-foreground text-sm">{inv.userEmail}</TableCell>
             <TableCell className="font-medium">{inv.planName}</TableCell>
             <TableCell className="font-mono">{formatCurrency(inv.amount)}</TableCell>
             <TableCell className="font-mono text-emerald-400">{formatCurrency(inv.expectedReturn)}</TableCell>
+            <TableCell className="font-mono text-sm text-muted-foreground">{new Date(inv.maturityDate).toLocaleDateString()}</TableCell>
             <TableCell>
-              <Badge variant="outline" className={inv.status === 'active' ? 'text-primary' : 'text-emerald-400'}>
+              <Badge variant="outline" className={inv.status === 'active' ? 'text-primary border-primary/20 bg-primary/10' : 'text-emerald-400 border-emerald-400/20 bg-emerald-400/10'}>
                 {inv.status}
               </Badge>
             </TableCell>

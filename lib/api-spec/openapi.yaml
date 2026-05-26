@@ -1,15 +1,22 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: CipherVault Crypto Investment API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: market
+    description: Market data operations
+  - name: portfolio
+    description: Portfolio management operations
+  - name: transactions
+    description: Transaction operations
+  - name: watchlist
+    description: Watchlist operations
 paths:
   /healthz:
     get:
@@ -24,6 +31,239 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /market/coins:
+    get:
+      operationId: listMarketCoins
+      tags: [market]
+      summary: List market coins with prices
+      responses:
+        "200":
+          description: Market coin list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MarketCoin"
+
+  /market/coins/{symbol}:
+    get:
+      operationId: getMarketCoin
+      tags: [market]
+      summary: Get single coin market data
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Coin market data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketCoin"
+        "404":
+          description: Coin not found
+
+  /portfolio/summary:
+    get:
+      operationId: getPortfolioSummary
+      tags: [portfolio]
+      summary: Get portfolio summary stats
+      responses:
+        "200":
+          description: Portfolio summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioSummary"
+
+  /portfolio/holdings:
+    get:
+      operationId: listHoldings
+      tags: [portfolio]
+      summary: List all holdings
+      responses:
+        "200":
+          description: Holdings list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Holding"
+    post:
+      operationId: createHolding
+      tags: [portfolio]
+      summary: Add a new holding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HoldingInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Holding"
+
+  /portfolio/holdings/{id}:
+    get:
+      operationId: getHolding
+      tags: [portfolio]
+      summary: Get a specific holding
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Holding
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Holding"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateHolding
+      tags: [portfolio]
+      summary: Update a holding
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HoldingUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Holding"
+    delete:
+      operationId: deleteHolding
+      tags: [portfolio]
+      summary: Delete a holding
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /transactions:
+    get:
+      operationId: listTransactions
+      tags: [transactions]
+      summary: List all transactions
+      responses:
+        "200":
+          description: Transactions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+    post:
+      operationId: createTransaction
+      tags: [transactions]
+      summary: Record a new transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+
+  /transactions/{id}:
+    delete:
+      operationId: deleteTransaction
+      tags: [transactions]
+      summary: Delete a transaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /watchlist:
+    get:
+      operationId: listWatchlist
+      tags: [watchlist]
+      summary: List watchlist items
+      responses:
+        "200":
+          description: Watchlist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WatchlistItem"
+    post:
+      operationId: addToWatchlist
+      tags: [watchlist]
+      summary: Add coin to watchlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WatchlistInput"
+      responses:
+        "201":
+          description: Added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistItem"
+
+  /watchlist/{id}:
+    delete:
+      operationId: removeFromWatchlist
+      tags: [watchlist]
+      summary: Remove from watchlist
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removed
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +274,171 @@ components:
       required:
         - status
 
+    MarketCoin:
+      type: object
+      required: [symbol, name, currentPrice, priceChange24h, priceChangePercent24h, marketCap, volume24h, logoUrl]
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        currentPrice:
+          type: number
+        priceChange24h:
+          type: number
+        priceChangePercent24h:
+          type: number
+        marketCap:
+          type: number
+        volume24h:
+          type: number
+        logoUrl:
+          type: string
+        rank:
+          type: ["integer", "null"]
+
+    PortfolioSummary:
+      type: object
+      required: [totalValue, totalCost, totalGainLoss, totalGainLossPercent, dayChange, dayChangePercent, holdingsCount]
+      properties:
+        totalValue:
+          type: number
+        totalCost:
+          type: number
+        totalGainLoss:
+          type: number
+        totalGainLossPercent:
+          type: number
+        dayChange:
+          type: number
+        dayChangePercent:
+          type: number
+        holdingsCount:
+          type: integer
+        topGainer:
+          $ref: "#/components/schemas/HoldingPerf"
+        topLoser:
+          $ref: "#/components/schemas/HoldingPerf"
+
+    HoldingPerf:
+      type: object
+      required: [symbol, name, changePercent]
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        changePercent:
+          type: number
+
+    Holding:
+      type: object
+      required: [id, symbol, name, quantity, avgBuyPrice, currentPrice, currentValue, gainLoss, gainLossPercent, logoUrl]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: number
+        avgBuyPrice:
+          type: number
+        currentPrice:
+          type: number
+        currentValue:
+          type: number
+        gainLoss:
+          type: number
+        gainLossPercent:
+          type: number
+        logoUrl:
+          type: string
+
+    HoldingInput:
+      type: object
+      required: [symbol, name, quantity, avgBuyPrice]
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: number
+        avgBuyPrice:
+          type: number
+
+    HoldingUpdate:
+      type: object
+      properties:
+        quantity:
+          type: number
+        avgBuyPrice:
+          type: number
+
+    Transaction:
+      type: object
+      required: [id, symbol, name, type, quantity, price, total, timestamp]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [buy, sell]
+        quantity:
+          type: number
+        price:
+          type: number
+        total:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+        notes:
+          type: ["string", "null"]
+
+    TransactionInput:
+      type: object
+      required: [symbol, name, type, quantity, price]
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [buy, sell]
+        quantity:
+          type: number
+        price:
+          type: number
+        notes:
+          type: string
+
+    WatchlistItem:
+      type: object
+      required: [id, symbol, name, addedAt]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        name:
+          type: string
+        addedAt:
+          type: string
+          format: date-time
+
+    WatchlistInput:
+      type: object
+      required: [symbol, name]
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string

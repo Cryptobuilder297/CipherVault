@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "CipherVault"
+version = "1.0.0"
+id = "artifacts/ciphervault"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19239
+
+[services.development]
+run = "pnpm --filter @workspace/ciphervault run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ciphervault", "run", "build" ]
+publicDir = "artifacts/ciphervault/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19239"
+BASE_PATH = "/"

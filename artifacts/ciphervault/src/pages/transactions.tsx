@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { TransactionInputType } from "@/lib/api-client-react/src/generated/api.schemas";
+import { TransactionInputType } from "@workspace/api-client-react";
 
 const txSchema = z.object({
   symbol: z.string().min(1, "Symbol is required").toUpperCase(),

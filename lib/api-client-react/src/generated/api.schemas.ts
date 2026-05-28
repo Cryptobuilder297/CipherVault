@@ -124,6 +124,10 @@ export interface UserProfile {
   role: string;
   balance: number;
   isActive: boolean;
+  /** @nullable */
+  referralCode?: string | null;
+  /** @nullable */
+  referredBy?: number | null;
   createdAt: string;
 }
 
@@ -131,6 +135,16 @@ export interface SyncUserInput {
   clerkId: string;
   email: string;
   username?: string;
+  referralCode?: string;
+}
+
+export interface ReferralStats {
+  /** @nullable */
+  referralCode: string | null;
+  totalReferred: number;
+  qualifiedReferrals: number;
+  bonusEarned: number;
+  bonusPerReferral: number;
 }
 
 export interface Deposit {

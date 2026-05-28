@@ -229,6 +229,18 @@ export const RemoveFromWatchlistParams = zod.object({
 
 
 /**
+ * @summary Get my referral stats and code
+ */
+export const GetReferralStatsResponse = zod.object({
+  "referralCode": zod.string().nullable(),
+  "totalReferred": zod.number(),
+  "qualifiedReferrals": zod.number(),
+  "bonusEarned": zod.number(),
+  "bonusPerReferral": zod.number()
+})
+
+
+/**
  * @summary Get current user profile
  */
 export const GetMeResponse = zod.object({
@@ -239,6 +251,8 @@ export const GetMeResponse = zod.object({
   "role": zod.string(),
   "balance": zod.number(),
   "isActive": zod.boolean(),
+  "referralCode": zod.string().nullish(),
+  "referredBy": zod.number().nullish(),
   "createdAt": zod.coerce.date()
 })
 
@@ -249,7 +263,8 @@ export const GetMeResponse = zod.object({
 export const SyncUserBody = zod.object({
   "clerkId": zod.string(),
   "email": zod.string(),
-  "username": zod.string().optional()
+  "username": zod.string().optional(),
+  "referralCode": zod.string().optional()
 })
 
 export const SyncUserResponse = zod.object({
@@ -260,6 +275,8 @@ export const SyncUserResponse = zod.object({
   "role": zod.string(),
   "balance": zod.number(),
   "isActive": zod.boolean(),
+  "referralCode": zod.string().nullish(),
+  "referredBy": zod.number().nullish(),
   "createdAt": zod.coerce.date()
 })
 

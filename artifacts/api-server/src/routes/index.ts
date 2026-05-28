@@ -11,6 +11,7 @@ import withdrawalsRouter from "./withdrawals";
 import plansRouter from "./plans";
 import investmentsRouter from "./investments";
 import adminRouter from "./admin";
+import referralsRouter from "./referrals";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(withdrawalsRouter);
 router.use(plansRouter);
 router.use(investmentsRouter);
 router.use(adminRouter);
+router.use(referralsRouter);
 
 export default router;

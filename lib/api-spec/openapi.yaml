@@ -27,6 +27,8 @@ tags:
     description: Investment plan operations
   - name: investments
     description: User investment operations
+  - name: referrals
+    description: Referral program operations
   - name: admin
     description: Admin operations
 paths:
@@ -274,6 +276,21 @@ paths:
       responses:
         "204":
           description: Removed
+
+  /referrals/me:
+    get:
+      operationId: getReferralStats
+      tags: [referrals]
+      summary: Get my referral stats and code
+      responses:
+        "200":
+          description: Referral stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralStats"
+        "401":
+          description: Unauthorized
 
   /users/me:
     get:
@@ -808,6 +825,10 @@ components:
           type: number
         isActive:
           type: boolean
+        referralCode:
+          type: ["string", "null"]
+        referredBy:
+          type: ["integer", "null"]
         createdAt:
           type: string
           format: date-time
@@ -822,6 +843,23 @@ components:
           type: string
         username:
           type: string
+        referralCode:
+          type: string
+
+    ReferralStats:
+      type: object
+      required: [referralCode, totalReferred, qualifiedReferrals, bonusEarned, bonusPerReferral]
+      properties:
+        referralCode:
+          type: ["string", "null"]
+        totalReferred:
+          type: integer
+        qualifiedReferrals:
+          type: integer
+        bonusEarned:
+          type: number
+        bonusPerReferral:
+          type: number
 
     Deposit:
       type: object

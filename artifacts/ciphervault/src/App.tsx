@@ -7,6 +7,13 @@ import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/reac
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Layout } from "@/components/layout";
+import { PublicLayout } from "@/components/public-layout";
+import HomePage from "@/pages/home";
+import AboutPage from "@/pages/about";
+import HowItWorksPage from "@/pages/how-it-works";
+import FaqPage from "@/pages/faq";
+import ContactPage from "@/pages/contact";
+import SecurityPage from "@/pages/security";
 import Dashboard from "@/pages/dashboard";
 import Market from "@/pages/market";
 import Portfolio from "@/pages/portfolio";
@@ -17,15 +24,14 @@ import Withdrawals from "@/pages/withdrawals";
 import Plans from "@/pages/plans";
 import MyInvestments from "@/pages/my-investments";
 import AdminDashboard from "@/pages/admin";
+import ReferralPage from "@/pages/referral";
 import NotFound from "@/pages/not-found";
 
-// REQUIRED — copy verbatim
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
 );
 
-// REQUIRED — copy verbatim
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -53,16 +59,16 @@ const clerkAppearance = {
     colorForeground: "#e2e8f0",
     colorMutedForeground: "#64748b",
     colorDanger: "#ef4444",
-    colorBackground: "#0d1a2d",
+    colorBackground: "#070d1a",
     colorInput: "#0a1628",
     colorInputForeground: "#e2e8f0",
     colorNeutral: "#1e3a5f",
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: "'Inter', sans-serif",
     borderRadius: "0.5rem",
   },
   elements: {
     rootBox: "w-full flex justify-center",
-    cardBox: "bg-[#0d1a2d] border border-[#1e3a5f] rounded-xl w-[440px] max-w-full overflow-hidden",
+    cardBox: "bg-[#0d1628] border border-[#1e3a5f] rounded-xl w-[440px] max-w-full overflow-hidden",
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
     headerTitle: { color: "#e2e8f0" },
@@ -93,39 +99,48 @@ const queryClient = new QueryClient();
 
 function SignInPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 dark">
       <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
     </div>
   );
 }
 
 function SignUpPage() {
+  // Capture ?ref= query param for referral code passing
+  const search = new URLSearchParams(window.location.search);
+  const ref = search.get("ref");
+  if (ref) {
+    sessionStorage.setItem("pendingReferralCode", ref);
+  }
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 dark">
       <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
     </div>
   );
 }
 
-// Syncs Clerk user to local DB on every sign-in
 function UserSyncer() {
   const { user, isLoaded } = useUser();
   const [synced, setSynced] = useState(false);
-  
+
   useEffect(() => {
     if (!isLoaded || !user || synced) return;
+    const referralCode = sessionStorage.getItem("pendingReferralCode") ?? undefined;
+    if (referralCode) sessionStorage.removeItem("pendingReferralCode");
+
     fetch('/api/users/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ 
-        clerkId: user.id, 
+      body: JSON.stringify({
+        clerkId: user.id,
         email: user.primaryEmailAddress?.emailAddress ?? '',
-        username: user.username ?? undefined 
+        username: user.username ?? undefined,
+        referralCode,
       }),
     }).then(() => setSynced(true)).catch(console.error);
   }, [isLoaded, user, synced]);
-  
+
   return null;
 }
 
@@ -165,7 +180,7 @@ function AppRoutes() {
   return (
     <Layout>
       <Switch>
-        <Route path="/" component={Dashboard} />
+        <Route path="/dashboard" component={Dashboard} />
         <Route path="/market" component={Market} />
         <Route path="/portfolio">{() => <ProtectedRoute component={Portfolio} />}</Route>
         <Route path="/transactions">{() => <ProtectedRoute component={Transactions} />}</Route>
@@ -174,10 +189,26 @@ function AppRoutes() {
         <Route path="/withdrawals">{() => <ProtectedRoute component={Withdrawals} />}</Route>
         <Route path="/plans" component={Plans} />
         <Route path="/investments">{() => <ProtectedRoute component={MyInvestments} />}</Route>
+        <Route path="/referral">{() => <ProtectedRoute component={ReferralPage} />}</Route>
         <Route path="/admin">{() => <ProtectedRoute component={AdminDashboard} />}</Route>
         <Route component={NotFound} />
       </Switch>
     </Layout>
+  );
+}
+
+function PublicRoutes() {
+  return (
+    <PublicLayout>
+      <Switch>
+        <Route path="/" component={HomePage} />
+        <Route path="/about" component={AboutPage} />
+        <Route path="/how-it-works" component={HowItWorksPage} />
+        <Route path="/faq" component={FaqPage} />
+        <Route path="/contact" component={ContactPage} />
+        <Route path="/security" component={SecurityPage} />
+      </Switch>
+    </PublicLayout>
   );
 }
 
@@ -205,6 +236,12 @@ function ClerkProviderWithRoutes() {
             <Switch>
               <Route path="/sign-in/*?" component={SignInPage} />
               <Route path="/sign-up/*?" component={SignUpPage} />
+              <Route path="/">{() => <PublicRoutes />}</Route>
+              <Route path="/about">{() => <PublicRoutes />}</Route>
+              <Route path="/how-it-works">{() => <PublicRoutes />}</Route>
+              <Route path="/faq">{() => <PublicRoutes />}</Route>
+              <Route path="/contact">{() => <PublicRoutes />}</Route>
+              <Route path="/security">{() => <PublicRoutes />}</Route>
               <Route>{() => <AppRoutes />}</Route>
             </Switch>
             <Toaster />

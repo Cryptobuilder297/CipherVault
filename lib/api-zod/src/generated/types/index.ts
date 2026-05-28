@@ -25,6 +25,7 @@ export * from './marketCoin';
 export * from './planInput';
 export * from './planUpdate';
 export * from './portfolioSummary';
+export * from './referralStats';
 export * from './statusUpdate';
 export * from './syncUserInput';
 export * from './transaction';

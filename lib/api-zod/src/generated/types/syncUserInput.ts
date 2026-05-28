@@ -10,4 +10,5 @@ export interface SyncUserInput {
   clerkId: string;
   email: string;
   username?: string;
+  referralCode?: string;
 }

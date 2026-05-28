@@ -38,6 +38,7 @@ import type {
   PlanInput,
   PlanUpdate,
   PortfolioSummary,
+  ReferralStats,
   StatusUpdate,
   SyncUserInput,
   Transaction,
@@ -1172,6 +1173,83 @@ export const useRemoveFromWatchlist = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getRemoveFromWatchlistMutationOptions(options));
     }
+
+export const getGetReferralStatsUrl = () => {
+
+
+
+
+  return `/api/referrals/me`
+}
+
+/**
+ * @summary Get my referral stats and code
+ */
+export const getReferralStats = async ( options?: RequestInit): Promise<ReferralStats> => {
+
+  return customFetch<ReferralStats>(getGetReferralStatsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReferralStatsQueryKey = () => {
+    return [
+    `/api/referrals/me`
+    ] as const;
+    }
+
+
+export const getGetReferralStatsQueryOptions = <TData = Awaited<ReturnType<typeof getReferralStats>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReferralStats>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReferralStatsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReferralStats>>> = ({ signal }) => getReferralStats({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReferralStats>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReferralStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getReferralStats>>>
+export type GetReferralStatsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get my referral stats and code
+ */
+
+export function useGetReferralStats<TData = Awaited<ReturnType<typeof getReferralStats>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReferralStats>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReferralStatsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetMeUrl = () => {
 

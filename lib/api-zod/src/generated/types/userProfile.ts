@@ -15,5 +15,9 @@ export interface UserProfile {
   role: string;
   balance: number;
   isActive: boolean;
+  /** @nullable */
+  referralCode?: string | null;
+  /** @nullable */
+  referredBy?: number | null;
   createdAt: Date;
 }

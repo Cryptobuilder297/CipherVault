@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { db, usersTable, depositsTable, withdrawalsTable, investmentPlansTable, userInvestmentsTable } from "@workspace/db";
-import { eq, sum, count, desc } from "drizzle-orm";
+import { eq, sum, count, desc, and } from "drizzle-orm";
 import { requireAdmin } from "../middlewares/requireAuth";
 
 const router = Router();
+
+const REFERRAL_BONUS = 50;
 
 router.get("/admin/stats", requireAdmin, async (req, res) => {
   const [totalUsers] = await db.select({ count: count() }).from(usersTable);
@@ -66,12 +68,29 @@ router.patch("/admin/deposits/:id", requireAdmin, async (req, res) => {
   const [dep] = await db.select().from(depositsTable).where(eq(depositsTable.id, id));
   if (!dep) { res.status(404).json({ error: "Not found" }); return; }
 
-  // Credit balance on approval (only once, if transitioning to approved)
   if (status === "approved" && dep.status !== "approved") {
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, dep.userId));
     if (user) {
       const newBalance = parseFloat(user.balance) + parseFloat(dep.amount);
       await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, user.id));
+
+      // Referral bonus: credit referrer $50 on referred user's FIRST deposit approval
+      if (user.referredBy) {
+        const [prevApproved] = await db
+          .select({ count: count() })
+          .from(depositsTable)
+          .where(and(eq(depositsTable.userId, user.id), eq(depositsTable.status, "approved")));
+
+        if ((prevApproved?.count ?? 0) === 0) {
+          const [referrer] = await db.select().from(usersTable).where(eq(usersTable.id, user.referredBy));
+          if (referrer) {
+            const newReferrerBalance = parseFloat(referrer.balance) + REFERRAL_BONUS;
+            await db.update(usersTable)
+              .set({ balance: String(newReferrerBalance) })
+              .where(eq(usersTable.id, referrer.id));
+          }
+        }
+      }
     }
   }
 
@@ -114,7 +133,6 @@ router.patch("/admin/withdrawals/:id", requireAdmin, async (req, res) => {
   const [wit] = await db.select().from(withdrawalsTable).where(eq(withdrawalsTable.id, id));
   if (!wit) { res.status(404).json({ error: "Not found" }); return; }
 
-  // Refund balance if rejection (balance was already deducted at request time)
   if (status === "rejected" && wit.status === "pending") {
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, wit.userId));
     if (user) {

@@ -7,8 +7,6 @@ const steps = [
     number: "01",
     icon: UserPlus,
     title: "Create & Verify Your Account",
-    color: "text-cyan-400",
-    bgColor: "bg-cyan-500/10 border-cyan-500/20",
     details: [
       "Sign up with just your email and password",
       "Complete our streamlined KYC verification (under 24 hours)",
@@ -21,8 +19,6 @@ const steps = [
     number: "02",
     icon: CreditCard,
     title: "Fund Your Vault",
-    color: "text-violet-400",
-    bgColor: "bg-violet-500/10 border-violet-500/20",
     details: [
       "Choose from bank transfer, cryptocurrency, or card payment",
       "Submit your deposit request with the desired amount",
@@ -35,8 +31,6 @@ const steps = [
     number: "03",
     icon: TrendingUp,
     title: "Choose an Investment Plan",
-    color: "text-amber-400",
-    bgColor: "bg-amber-500/10 border-amber-500/20",
     details: [
       "Browse our 4 tiered plans from Starter (8%) to Elite (40%)",
       "Select the plan that matches your budget and time horizon",
@@ -49,8 +43,6 @@ const steps = [
     number: "04",
     icon: DollarSign,
     title: "Earn & Withdraw",
-    color: "text-emerald-400",
-    bgColor: "bg-emerald-500/10 border-emerald-500/20",
     details: [
       "Returns are automatically credited at plan maturity",
       "Full principal plus earnings land in your vault balance",
@@ -73,17 +65,12 @@ export default function HowItWorksPage() {
     <div className="overflow-x-hidden">
       {/* Hero */}
       <section className="relative py-24 border-b border-border grid-bg">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-violet-600/8 rounded-full blur-3xl" />
-        </div>
         <div className="relative max-w-7xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-primary text-sm font-medium mb-6">
-            Simple & Transparent
-          </div>
-          <h1 className="text-5xl md:text-6xl font-extrabold mb-6" style={{ fontFamily: "'Syne', sans-serif" }}>
-            How <span className="gradient-text">CipherVault</span> works
+          <p className="text-[12px] uppercase tracking-widest text-muted-foreground mb-5">Simple & Transparent</p>
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-6 text-white tracking-tight">
+            How CipherVault works
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          <p className="text-[16px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
             From sign-up to returns in four clear steps. No confusing jargon, no hidden processes — just transparent, reliable investing.
           </p>
         </div>
@@ -94,26 +81,26 @@ export default function HowItWorksPage() {
         <div className="max-w-5xl mx-auto px-6">
           <div className="space-y-20">
             {steps.map((step, i) => (
-              <div key={step.number} className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${i % 2 === 1 ? "lg:flex-row-reverse" : ""}`}>
+              <div key={step.number} className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center`}>
                 <div className={i % 2 === 1 ? "lg:order-2" : ""}>
-                  <div className="text-8xl font-black font-mono text-primary/10 mb-4">{step.number}</div>
-                  <h2 className="text-3xl font-bold mb-4" style={{ fontFamily: "'Syne', sans-serif" }}>{step.title}</h2>
+                  <div className="text-8xl font-black text-white/5 mb-4 tabular-nums leading-none">{step.number}</div>
+                  <h2 className="text-3xl font-bold text-white mb-4 tracking-tight">{step.title}</h2>
                   <ul className="space-y-3 mb-6">
                     {step.details.map((d) => (
-                      <li key={d} className="flex items-start gap-3 text-muted-foreground">
-                        <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <li key={d} className="flex items-start gap-3 text-muted-foreground text-[14px]">
+                        <CheckCircle className="w-4 h-4 text-foreground/40 mt-0.5 flex-shrink-0" />
                         <span>{d}</span>
                       </li>
                     ))}
                   </ul>
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/20 text-primary text-sm">
-                    <Clock className="w-3.5 h-3.5" />
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-border text-[12px] text-muted-foreground">
+                    <Clock className="w-3 h-3" />
                     {step.time}
                   </div>
                 </div>
                 <div className={i % 2 === 1 ? "lg:order-1" : ""}>
-                  <div className={`rounded-2xl border p-10 ${step.bgColor} flex items-center justify-center`}>
-                    <step.icon className={`w-24 h-24 ${step.color} opacity-60`} strokeWidth={1} />
+                  <div className="rounded-xl border border-border bg-card/50 flex items-center justify-center p-12">
+                    <step.icon className="w-24 h-24 text-foreground/15" strokeWidth={1} />
                   </div>
                 </div>
               </div>
@@ -122,36 +109,36 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      {/* Investment Plans */}
+      {/* Plans Table */}
       <section className="py-20 bg-card/20 border-y border-border">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-14">
-            <h2 className="text-4xl font-bold mb-4" style={{ fontFamily: "'Syne', sans-serif" }}>Investment Plan Details</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">All returns are fixed-rate and credited automatically at plan maturity.</p>
+            <h2 className="text-4xl font-bold text-white tracking-tight mb-3">Investment Plan Details</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto text-[15px]">All returns are fixed-rate and credited automatically at plan maturity.</p>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full border border-border rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto rounded-xl border border-border">
+            <table className="w-full">
               <thead>
-                <tr className="bg-muted/50 border-b border-border">
+                <tr className="border-b border-border">
                   {["Plan", "Return Rate", "Duration", "Min Investment", "Max Investment", "Notes"].map((h) => (
-                    <th key={h} className="text-left px-5 py-4 text-sm font-semibold text-muted-foreground">{h}</th>
+                    <th key={h} className="text-left px-5 py-4 text-[12px] font-medium text-muted-foreground uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {plans.map((plan, i) => (
-                  <tr key={plan.name} className={`border-b last:border-0 border-border hover:bg-muted/20 transition-colors ${plan.popular ? "bg-primary/5" : ""}`}>
+                {plans.map((plan) => (
+                  <tr key={plan.name} className={`border-b last:border-0 border-border hover:bg-white/3 transition-colors ${plan.popular ? "bg-white/3" : ""}`}>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold">{plan.name}</span>
-                        {plan.popular && <span className="px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-bold">Popular</span>}
+                        <span className="font-semibold text-white text-[14px]">{plan.name}</span>
+                        {plan.popular && <span className="px-2 py-0.5 rounded-full bg-white text-background text-[10px] font-bold">Popular</span>}
                       </div>
                     </td>
-                    <td className="px-5 py-4 font-mono font-bold text-primary">{plan.return}</td>
-                    <td className="px-5 py-4 text-muted-foreground">{plan.duration}</td>
-                    <td className="px-5 py-4 font-mono">{plan.min}</td>
-                    <td className="px-5 py-4 font-mono">{plan.max}</td>
-                    <td className="px-5 py-4 text-sm text-muted-foreground">{plan.desc}</td>
+                    <td className="px-5 py-4 font-bold text-white text-[15px] tabular-nums">{plan.return}</td>
+                    <td className="px-5 py-4 text-muted-foreground text-[13px]">{plan.duration}</td>
+                    <td className="px-5 py-4 text-[13px] text-foreground tabular-nums">{plan.min}</td>
+                    <td className="px-5 py-4 text-[13px] text-foreground tabular-nums">{plan.max}</td>
+                    <td className="px-5 py-4 text-[13px] text-muted-foreground">{plan.desc}</td>
                   </tr>
                 ))}
               </tbody>
@@ -160,30 +147,30 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      {/* FAQ Quick */}
+      {/* Quick FAQ */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4" style={{ fontFamily: "'Syne', sans-serif" }}>Common Questions</h2>
+            <h2 className="text-4xl font-bold text-white tracking-tight">Common Questions</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
               { q: "Can I withdraw early?", a: "Invested funds are locked for the plan duration. Your vault balance is always withdrawable." },
               { q: "Are returns guaranteed?", a: "Our fixed-rate plans deliver the stated returns at maturity, backed by our diversified yield strategies." },
               { q: "How are deposits verified?", a: "Our team manually reviews every deposit to ensure security and compliance, typically within 1–4 hours." },
               { q: "What's the referral bonus?", a: "Refer a friend and earn $50 when they make their first deposit. No limit on referrals." },
             ].map((item) => (
-              <div key={item.q} className="p-6 rounded-xl border border-border bg-card/50">
-                <h4 className="font-semibold mb-2 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-primary" /> {item.q}
+              <div key={item.q} className="p-5 rounded-xl border border-border bg-card">
+                <h4 className="font-semibold text-white mb-2 text-[14px] flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-foreground/40" /> {item.q}
                 </h4>
-                <p className="text-sm text-muted-foreground">{item.a}</p>
+                <p className="text-[13px] text-muted-foreground">{item.a}</p>
               </div>
             ))}
           </div>
           <div className="text-center mt-8">
             <Link href="/faq">
-              <Button variant="outline" className="gap-2">Full FAQ <ArrowRight className="w-4 h-4" /></Button>
+              <Button variant="outline" className="gap-2 text-[13px]">Full FAQ <ArrowRight className="w-3.5 h-3.5" /></Button>
             </Link>
           </div>
         </div>
@@ -192,12 +179,10 @@ export default function HowItWorksPage() {
       {/* CTA */}
       <section className="py-20 border-t border-border bg-card/20">
         <div className="max-w-2xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-4" style={{ fontFamily: "'Syne', sans-serif" }}>
-            Ready to start?
-          </h2>
-          <p className="text-muted-foreground mb-8">Create your free account in under 2 minutes and start earning today.</p>
+          <h2 className="text-4xl font-bold text-white tracking-tight mb-4">Ready to start?</h2>
+          <p className="text-muted-foreground text-[15px] mb-8">Create your free account in under 2 minutes and start earning today.</p>
           <Link href="/sign-up">
-            <Button size="lg" className="gap-2 px-10 glow-cyan">
+            <Button size="lg" className="gap-2 px-10 h-11">
               Open Your Vault <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>

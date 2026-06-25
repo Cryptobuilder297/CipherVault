@@ -1,51 +1,36 @@
 import { Link } from "wouter";
-import { Shield, Zap, Globe, Mail, Twitter, Github, Linkedin } from "lucide-react";
+import { Shield, Zap, Globe, Mail } from "lucide-react";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-card/50">
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-          {/* Brand */}
+    <footer className="border-t border-border">
+      <div className="max-w-7xl mx-auto px-6 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <img src={`${basePath}/logo.svg`} alt="CipherVault" className="w-7 h-7" />
-              <span className="font-bold text-xl text-foreground" style={{ fontFamily: "'Syne', sans-serif" }}>
-                CipherVault
-              </span>
+              <img src={`${basePath}/logo.svg`} alt="CipherVault" className="w-6 h-6" />
+              <span className="font-bold text-[15px] text-foreground tracking-tight">CipherVault</span>
             </div>
-            <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-              The most trusted crypto investment platform. Grow your wealth with institutional-grade security and transparent returns.
+            <p className="text-muted-foreground text-[13px] leading-relaxed mb-5">
+              Institutional-grade crypto investment infrastructure for every investor.
             </p>
-            <div className="flex items-center gap-3">
-              <a href="#" className="w-9 h-9 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary border border-border flex items-center justify-center transition-colors">
-                <Twitter className="w-4 h-4" />
-              </a>
-              <a href="#" className="w-9 h-9 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary border border-border flex items-center justify-center transition-colors">
-                <Github className="w-4 h-4" />
-              </a>
-              <a href="#" className="w-9 h-9 rounded-lg bg-muted hover:bg-primary/10 hover:text-primary border border-border flex items-center justify-center transition-colors">
-                <Linkedin className="w-4 h-4" />
-              </a>
-            </div>
           </div>
 
-          {/* Platform */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4 text-sm uppercase tracking-wider">Platform</h4>
-            <ul className="space-y-3">
+            <h4 className="font-semibold text-foreground mb-4 text-[12px] uppercase tracking-widest text-muted-foreground">Platform</h4>
+            <ul className="space-y-2.5">
               {[
                 { label: "Dashboard", href: "/dashboard" },
                 { label: "Investment Plans", href: "/plans" },
                 { label: "Deposit Funds", href: "/deposits" },
-                { label: "Withdraw", href: "/withdrawals" },
+                { label: "Withdrawals", href: "/withdrawals" },
                 { label: "Market Data", href: "/market" },
               ].map((item) => (
                 <li key={item.href}>
                   <Link href={item.href}>
-                    <span className="text-muted-foreground hover:text-primary text-sm transition-colors cursor-pointer">
+                    <span className="text-muted-foreground hover:text-foreground text-[13px] transition-colors cursor-pointer">
                       {item.label}
                     </span>
                   </Link>
@@ -54,10 +39,9 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Company */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4 text-sm uppercase tracking-wider">Company</h4>
-            <ul className="space-y-3">
+            <h4 className="font-semibold mb-4 text-[12px] uppercase tracking-widest text-muted-foreground">Company</h4>
+            <ul className="space-y-2.5">
               {[
                 { label: "About Us", href: "/about" },
                 { label: "How It Works", href: "/how-it-works" },
@@ -67,7 +51,7 @@ export function Footer() {
               ].map((item) => (
                 <li key={item.href}>
                   <Link href={item.href}>
-                    <span className="text-muted-foreground hover:text-primary text-sm transition-colors cursor-pointer">
+                    <span className="text-muted-foreground hover:text-foreground text-[13px] transition-colors cursor-pointer">
                       {item.label}
                     </span>
                   </Link>
@@ -76,38 +60,32 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Trust badges */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4 text-sm uppercase tracking-wider">Trust & Security</h4>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Shield className="w-4 h-4 text-primary flex-shrink-0" />
-                256-bit SSL Encryption
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Zap className="w-4 h-4 text-primary flex-shrink-0" />
-                99.9% Uptime SLA
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Globe className="w-4 h-4 text-primary flex-shrink-0" />
-                Globally Distributed
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Mail className="w-4 h-4 text-primary flex-shrink-0" />
-                support@ciphervault.io
-              </div>
+            <h4 className="font-semibold mb-4 text-[12px] uppercase tracking-widest text-muted-foreground">Security</h4>
+            <div className="space-y-2.5">
+              {[
+                { icon: Shield, text: "256-bit SSL Encryption" },
+                { icon: Zap, text: "99.9% Uptime SLA" },
+                { icon: Globe, text: "Globally Distributed" },
+                { icon: Mail, text: "support@ciphervault.io" },
+              ].map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center gap-2 text-[13px] text-muted-foreground">
+                  <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                  {text}
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
         <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-[12px]">
             © {new Date().getFullYear()} CipherVault. All rights reserved.
           </p>
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-primary transition-colors">Risk Disclosure</a>
+          <div className="flex items-center gap-5 text-[12px] text-muted-foreground">
+            <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-foreground transition-colors">Risk Disclosure</a>
           </div>
         </div>
       </div>

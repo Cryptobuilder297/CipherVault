@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Layout } from "@/components/layout";
 import { PublicLayout } from "@/components/public-layout";
+import ReCAPTCHA from "react-google-recaptcha";
 import HomePage from "@/pages/home";
 import AboutPage from "@/pages/about";
 import HowItWorksPage from "@/pages/how-it-works";
@@ -31,10 +32,13 @@ const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
 );
-
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
-
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+// Google reCAPTCHA v2 site key — use VITE_RECAPTCHA_SITE_KEY in production
+// Default: Google's official test key (always passes, for development only)
+const RECAPTCHA_SITE_KEY =
+  import.meta.env.VITE_RECAPTCHA_SITE_KEY ?? "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
 
 function stripBase(path: string): string {
   return basePath && path.startsWith(basePath)
@@ -42,9 +46,7 @@ function stripBase(path: string): string {
     : path;
 }
 
-if (!clerkPubKey) {
-  throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY');
-}
+if (!clerkPubKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY');
 
 const clerkAppearance = {
   baseTheme: dark,
@@ -55,41 +57,41 @@ const clerkAppearance = {
     logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
   },
   variables: {
-    colorPrimary: "#00e5ff",
-    colorForeground: "#e2e8f0",
-    colorMutedForeground: "#64748b",
+    colorPrimary: "#ffffff",
+    colorForeground: "#f3f4f6",
+    colorMutedForeground: "#6b7280",
     colorDanger: "#ef4444",
-    colorBackground: "#070d1a",
-    colorInput: "#0a1628",
-    colorInputForeground: "#e2e8f0",
-    colorNeutral: "#1e3a5f",
-    fontFamily: "'Inter', sans-serif",
+    colorBackground: "#0b0c0e",
+    colorInput: "#111315",
+    colorInputForeground: "#f3f4f6",
+    colorNeutral: "#1f2127",
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
     borderRadius: "0.5rem",
   },
   elements: {
     rootBox: "w-full flex justify-center",
-    cardBox: "bg-[#0d1628] border border-[#1e3a5f] rounded-xl w-[440px] max-w-full overflow-hidden",
+    cardBox: "bg-[#111315] border border-[#1f2127] rounded-xl w-[440px] max-w-full overflow-hidden",
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: { color: "#e2e8f0" },
-    headerSubtitle: { color: "#64748b" },
-    socialButtonsBlockButtonText: { color: "#e2e8f0" },
-    formFieldLabel: { color: "#94a3b8" },
-    footerActionLink: { color: "#00e5ff" },
-    footerActionText: { color: "#64748b" },
-    dividerText: { color: "#64748b" },
-    identityPreviewEditButton: { color: "#00e5ff" },
+    headerTitle: { color: "#f3f4f6" },
+    headerSubtitle: { color: "#6b7280" },
+    socialButtonsBlockButtonText: { color: "#f3f4f6" },
+    formFieldLabel: { color: "#9ca3af" },
+    footerActionLink: { color: "#ffffff" },
+    footerActionText: { color: "#6b7280" },
+    dividerText: { color: "#6b7280" },
+    identityPreviewEditButton: { color: "#ffffff" },
     formFieldSuccessText: { color: "#22c55e" },
     alertText: { color: "#ef4444" },
     logoBox: "p-2",
-    logoImage: { height: "40px" },
-    socialButtonsBlockButton: { borderColor: "#1e3a5f", backgroundColor: "#0a1628" },
-    formButtonPrimary: { backgroundColor: "#00e5ff", color: "#000" },
-    formFieldInput: { backgroundColor: "#0a1628", borderColor: "#1e3a5f", color: "#e2e8f0" },
+    logoImage: { height: "36px" },
+    socialButtonsBlockButton: { borderColor: "#1f2127", backgroundColor: "#0b0c0e" },
+    formButtonPrimary: { backgroundColor: "#ffffff", color: "#0b0c0e", fontWeight: "600" },
+    formFieldInput: { backgroundColor: "#0b0c0e", borderColor: "#1f2127", color: "#f3f4f6" },
     footerAction: "bg-transparent",
-    dividerLine: { backgroundColor: "#1e3a5f" },
+    dividerLine: { backgroundColor: "#1f2127" },
     alert: { backgroundColor: "#1a0a0a", borderColor: "#ef4444" },
-    otpCodeFieldInput: { backgroundColor: "#0a1628", borderColor: "#00e5ff", color: "#e2e8f0" },
+    otpCodeFieldInput: { backgroundColor: "#0b0c0e", borderColor: "#ffffff", color: "#f3f4f6" },
     formFieldRow: "gap-3",
     main: "gap-4",
   },
@@ -97,25 +99,44 @@ const clerkAppearance = {
 
 const queryClient = new QueryClient();
 
-function SignInPage() {
+function RecaptchaGate({ children }: { children: React.ReactNode }) {
+  const [verified, setVerified] = useState(false);
+  if (verified) return <>{children}</>;
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 dark">
-      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+    <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-background px-4 dark gap-6">
+      <div className="text-center mb-2">
+        <div className="text-[15px] font-semibold text-white mb-1">Security Check</div>
+        <div className="text-[13px] text-muted-foreground">Please verify you're human to continue</div>
+      </div>
+      <ReCAPTCHA
+        sitekey={RECAPTCHA_SITE_KEY}
+        theme="dark"
+        onChange={(token) => { if (token) setVerified(true); }}
+      />
     </div>
   );
 }
 
+function SignInPage() {
+  return (
+    <RecaptchaGate>
+      <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 dark">
+        <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+      </div>
+    </RecaptchaGate>
+  );
+}
+
 function SignUpPage() {
-  // Capture ?ref= query param for referral code passing
   const search = new URLSearchParams(window.location.search);
   const ref = search.get("ref");
-  if (ref) {
-    sessionStorage.setItem("pendingReferralCode", ref);
-  }
+  if (ref) sessionStorage.setItem("pendingReferralCode", ref);
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 dark">
-      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
-    </div>
+    <RecaptchaGate>
+      <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 dark">
+        <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+      </div>
+    </RecaptchaGate>
   );
 }
 
@@ -127,7 +148,6 @@ function UserSyncer() {
     if (!isLoaded || !user || synced) return;
     const referralCode = sessionStorage.getItem("pendingReferralCode") ?? undefined;
     if (referralCode) sessionStorage.removeItem("pendingReferralCode");
-
     fetch('/api/users/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -166,12 +186,8 @@ function ClerkQueryClientCacheInvalidator() {
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   return (
     <>
-      <Show when="signed-in">
-        <Component />
-      </Show>
-      <Show when="signed-out">
-        <Redirect to="/sign-in" />
-      </Show>
+      <Show when="signed-in"><Component /></Show>
+      <Show when="signed-out"><Redirect to="/sign-in" /></Show>
     </>
   );
 }

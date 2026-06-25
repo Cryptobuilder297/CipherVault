@@ -24,10 +24,7 @@ function useReferralStats() {
     setLoading(true);
     try {
       const res = await fetch("/api/referrals/me", { credentials: "include" });
-      if (res.ok) {
-        const json = await res.json();
-        setData(json);
-      }
+      if (res.ok) setData(await res.json());
     } catch {}
     setLoading(false);
     setFetched(true);
@@ -42,109 +39,91 @@ export default function ReferralPage() {
   const [copied, setCopied] = useState(false);
 
   if (!user) return null;
-
-  if (!stats && !loading) {
-    fetchStats();
-  }
+  if (!stats && !loading) fetchStats();
 
   const referralCode = stats?.referralCode ?? "Loading...";
   const referralLink = `${window.location.origin}${import.meta.env.BASE_URL}sign-up?ref=${referralCode}`;
 
-  const copyCode = async () => {
-    await navigator.clipboard.writeText(referralCode);
+  const copy = async (text: string) => {
+    await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const copyLink = async () => {
-    await navigator.clipboard.writeText(referralLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const steps = [
-    { step: "1", title: "Share Your Code", desc: "Give your unique referral code or link to friends interested in crypto investing." },
-    { step: "2", title: "Friend Signs Up", desc: "Your friend creates their CipherVault account using your referral code during registration." },
-    { step: "3", title: "First Deposit", desc: "When their first deposit is approved by our team, you receive a $50 bonus automatically." },
-  ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Header */}
+    <div className="space-y-6 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "'Syne', sans-serif" }}>
-          Referral Program
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Earn <span className="text-primary font-semibold">${REFERRAL_BONUS}</span> for every friend who joins and makes their first deposit.
+        <h1 className="text-3xl font-bold tracking-tight text-white">Referral Program</h1>
+        <p className="text-muted-foreground mt-1 text-[14px]">
+          Earn <span className="text-foreground font-semibold">${REFERRAL_BONUS}</span> for every friend who joins and makes their first deposit.
         </p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="rounded-xl border border-border bg-card/50 p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
-              <Users className="w-5 h-5 text-cyan-400" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="rounded-xl border border-border bg-card p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-lg bg-white/5 border border-border flex items-center justify-center">
+              <Users className="w-4.5 h-4.5 text-foreground/60" />
             </div>
-            <span className="text-sm text-muted-foreground">Total Referred</span>
+            <span className="text-[13px] text-muted-foreground">Total Referred</span>
           </div>
-          <div className="text-4xl font-bold font-mono">{loading ? "—" : stats?.totalReferred ?? 0}</div>
-          <p className="text-xs text-muted-foreground mt-1">Friends who used your code</p>
+          <div className="text-4xl font-bold text-white tabular-nums">{loading ? "—" : stats?.totalReferred ?? 0}</div>
+          <p className="text-[12px] text-muted-foreground mt-1">Friends who used your code</p>
         </div>
 
-        <div className="rounded-xl border border-border bg-card/50 p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-violet-400" />
+        <div className="rounded-xl border border-border bg-card p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-lg bg-white/5 border border-border flex items-center justify-center">
+              <CheckCircle className="w-4.5 h-4.5 text-foreground/60" />
             </div>
-            <span className="text-sm text-muted-foreground">Qualified Referrals</span>
+            <span className="text-[13px] text-muted-foreground">Qualified Referrals</span>
           </div>
-          <div className="text-4xl font-bold font-mono">{loading ? "—" : stats?.qualifiedReferrals ?? 0}</div>
-          <p className="text-xs text-muted-foreground mt-1">Friends who completed first deposit</p>
+          <div className="text-4xl font-bold text-white tabular-nums">{loading ? "—" : stats?.qualifiedReferrals ?? 0}</div>
+          <p className="text-[12px] text-muted-foreground mt-1">Friends with approved deposits</p>
         </div>
 
-        <div className="rounded-xl border border-primary/30 bg-gradient-to-r from-primary/10 to-primary/5 p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-primary" />
+        <div className="rounded-xl border border-white/15 bg-card p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-lg bg-white/5 border border-border flex items-center justify-center">
+              <DollarSign className="w-4.5 h-4.5 text-foreground/60" />
             </div>
-            <span className="text-sm text-muted-foreground">Total Bonus Earned</span>
+            <span className="text-[13px] text-muted-foreground">Bonus Earned</span>
           </div>
-          <div className="text-4xl font-bold font-mono text-primary">
+          <div className="text-4xl font-bold text-white tabular-nums">
             ${loading ? "—" : stats?.bonusEarned ?? 0}
           </div>
-          <p className="text-xs text-muted-foreground mt-1">${REFERRAL_BONUS} per qualified referral</p>
+          <p className="text-[12px] text-muted-foreground mt-1">${REFERRAL_BONUS} per qualified referral</p>
         </div>
       </div>
 
       {/* Referral Code */}
-      <div className="rounded-xl border border-border bg-card/50 p-6">
-        <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-          <Gift className="w-5 h-5 text-primary" />
+      <div className="rounded-xl border border-border bg-card p-6">
+        <h2 className="text-[16px] font-semibold text-white mb-5 flex items-center gap-2">
+          <Gift className="w-4.5 h-4.5 text-foreground/60" />
           Your Referral Code
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <p className="text-sm text-muted-foreground mb-3">Share this code with friends during sign-up:</p>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 rounded-lg bg-background border border-border px-4 py-3 font-mono text-xl font-bold text-primary tracking-widest">
+            <p className="text-[12px] text-muted-foreground mb-2">Share this code during sign-up:</p>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 rounded-lg bg-background border border-border px-4 py-2.5 font-bold text-white tracking-widest text-lg tabular-nums">
                 {loading ? "Loading..." : referralCode}
               </div>
-              <Button variant="outline" onClick={copyCode} className="shrink-0 gap-2">
-                {copied ? <CheckCircle className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
-                {copied ? "Copied!" : "Copy"}
+              <Button variant="outline" onClick={() => copy(referralCode)} className="shrink-0 text-[13px]" size="sm">
+                {copied ? <CheckCircle className="w-3.5 h-3.5 mr-1.5" /> : <Copy className="w-3.5 h-3.5 mr-1.5" />}
+                {copied ? "Copied" : "Copy"}
               </Button>
             </div>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground mb-3">Or share your referral link:</p>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 rounded-lg bg-background border border-border px-4 py-3 text-xs text-muted-foreground truncate font-mono">
+            <p className="text-[12px] text-muted-foreground mb-2">Or share your referral link:</p>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 rounded-lg bg-background border border-border px-4 py-2.5 text-[11px] text-muted-foreground truncate">
                 {loading ? "Loading..." : referralLink}
               </div>
-              <Button variant="outline" onClick={copyLink} className="shrink-0 gap-2">
-                <Share2 className="w-4 h-4" />
+              <Button variant="outline" onClick={() => copy(referralLink)} className="shrink-0 text-[13px]" size="sm">
+                <Share2 className="w-3.5 h-3.5 mr-1.5" />
                 Share
               </Button>
             </div>
@@ -153,17 +132,21 @@ export default function ReferralPage() {
       </div>
 
       {/* How It Works */}
-      <div className="rounded-xl border border-border bg-card/50 p-6">
-        <h2 className="text-lg font-bold mb-6">How the Referral Program Works</h2>
+      <div className="rounded-xl border border-border bg-card p-6">
+        <h2 className="text-[16px] font-semibold text-white mb-5">How It Works</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {steps.map((s) => (
+          {[
+            { step: "1", title: "Share Your Code", desc: "Give your unique referral code or link to friends interested in crypto investing." },
+            { step: "2", title: "Friend Signs Up", desc: "Your friend creates their CipherVault account using your referral code during registration." },
+            { step: "3", title: "Earn $50", desc: "When their first deposit is approved by our team, you receive a $50 bonus automatically." },
+          ].map((s) => (
             <div key={s.step} className="flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-black font-mono flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-white/8 border border-border flex items-center justify-center text-white font-bold text-[13px] flex-shrink-0 tabular-nums">
                 {s.step}
               </div>
               <div>
-                <h4 className="font-semibold mb-1">{s.title}</h4>
-                <p className="text-sm text-muted-foreground">{s.desc}</p>
+                <h4 className="font-semibold text-white mb-1 text-[14px]">{s.title}</h4>
+                <p className="text-[13px] text-muted-foreground">{s.desc}</p>
               </div>
             </div>
           ))}
@@ -171,41 +154,31 @@ export default function ReferralPage() {
       </div>
 
       {/* Terms */}
-      <div className="rounded-xl border border-border bg-muted/20 p-5">
-        <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">Program Terms</h3>
-        <ul className="space-y-2 text-sm text-muted-foreground">
-          <li className="flex items-start gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground mt-2 flex-shrink-0" />
-            Bonus of ${REFERRAL_BONUS} is credited when your referred friend's first deposit is approved.
-          </li>
-          <li className="flex items-start gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground mt-2 flex-shrink-0" />
-            There is no limit on the number of referrals — earn ${REFERRAL_BONUS} for every qualified friend.
-          </li>
-          <li className="flex items-start gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground mt-2 flex-shrink-0" />
-            Referred friends must complete KYC verification and make a qualifying deposit.
-          </li>
-          <li className="flex items-start gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground mt-2 flex-shrink-0" />
-            Self-referrals and abuse of the program will result in account suspension.
-          </li>
-          <li className="flex items-start gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground mt-2 flex-shrink-0" />
-            Bonus funds are credited to your vault balance and can be invested or withdrawn.
-          </li>
+      <div className="rounded-xl border border-border bg-muted/10 p-5">
+        <h3 className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Program Terms</h3>
+        <ul className="space-y-2 text-[13px] text-muted-foreground">
+          {[
+            `Bonus of $${REFERRAL_BONUS} is credited when your referred friend's first deposit is approved.`,
+            "There is no limit on the number of referrals — each qualified friend earns you $50.",
+            "Referred friends must complete KYC verification and make a qualifying deposit.",
+            "Self-referrals and abuse of the program will result in account suspension.",
+          ].map((term, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground mt-2 flex-shrink-0" />
+              {term}
+            </li>
+          ))}
         </ul>
       </div>
 
-      {/* CTA */}
-      <div className="rounded-xl border border-primary/30 bg-gradient-to-r from-primary/10 to-primary/5 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="rounded-xl border border-border bg-card p-5 flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
-          <h3 className="font-bold text-lg">Want to maximize your earnings?</h3>
-          <p className="text-muted-foreground text-sm">Invest your referral bonuses in one of our yield plans.</p>
+          <h3 className="font-semibold text-white text-[15px]">Maximize your earnings</h3>
+          <p className="text-muted-foreground text-[13px]">Invest your referral bonuses in a yield plan.</p>
         </div>
         <Link href="/plans">
-          <Button className="gap-2 whitespace-nowrap">
-            View Investment Plans <ArrowRight className="w-4 h-4" />
+          <Button className="gap-2 text-[13px] whitespace-nowrap" size="sm">
+            View Investment Plans <ArrowRight className="w-3.5 h-3.5" />
           </Button>
         </Link>
       </div>

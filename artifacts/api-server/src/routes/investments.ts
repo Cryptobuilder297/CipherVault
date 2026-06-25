@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, userInvestmentsTable, investmentPlansTable, usersTable } from "@workspace/db";
 import { eq, desc, and, lte } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
+import { sendInvestmentMaturedEmail } from "../services/email";
 
 const router = Router();
 
@@ -17,31 +18,41 @@ function fmt(inv: typeof userInvestmentsTable.$inferSelect, planName?: string) {
   };
 }
 
-// Auto-mature investments that have passed their maturity date
 async function processMaturities(userId: number) {
   const now = new Date();
   const matured = await db
     .select()
     .from(userInvestmentsTable)
-    .where(
-      and(
-        eq(userInvestmentsTable.userId, userId),
-        eq(userInvestmentsTable.status, "active"),
-        lte(userInvestmentsTable.maturityDate, now),
-      ),
-    );
+    .where(and(
+      eq(userInvestmentsTable.userId, userId),
+      eq(userInvestmentsTable.status, "active"),
+      lte(userInvestmentsTable.maturityDate, now),
+    ));
 
   for (const inv of matured) {
-    // Credit expected return to user's balance
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
-    if (user) {
-      const newBalance = parseFloat(user.balance) + parseFloat(inv.expectedReturn);
-      await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, userId));
-    }
-    // Mark as completed
+    if (!user) continue;
+
+    const newBalance = parseFloat(user.balance) + parseFloat(inv.expectedReturn);
+    await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, userId));
     await db.update(userInvestmentsTable)
       .set({ status: "completed", completedAt: now })
       .where(eq(userInvestmentsTable.id, inv.id));
+
+    // Fetch plan name for email
+    const [plan] = await db.select().from(investmentPlansTable).where(eq(investmentPlansTable.id, inv.planId));
+    const amount = parseFloat(inv.amount);
+    const expectedReturn = parseFloat(inv.expectedReturn);
+
+    // Send maturity email notification
+    await sendInvestmentMaturedEmail({
+      to: user.email,
+      planName: plan?.name ?? "Investment Plan",
+      amount,
+      expectedReturn,
+      profit: expectedReturn - amount,
+      newBalance,
+    });
   }
 }
 
@@ -49,7 +60,6 @@ router.get("/investments", requireAuth, async (req, res) => {
   const user = req.localUser;
   if (!user) { res.status(404).json({ error: "User not provisioned" }); return; }
 
-  // Auto-process any matured investments first
   await processMaturities(user.id);
 
   const rows = await db
@@ -88,10 +98,7 @@ router.post("/investments", requireAuth, async (req, res) => {
   const maturityDate = new Date();
   maturityDate.setDate(maturityDate.getDate() + plan.durationDays);
 
-  // Deduct investment amount from balance
-  await db.update(usersTable)
-    .set({ balance: String(balance - amount) })
-    .where(eq(usersTable.id, user.id));
+  await db.update(usersTable).set({ balance: String(balance - amount) }).where(eq(usersTable.id, user.id));
 
   const [inv] = await db.insert(userInvestmentsTable).values({
     userId: user.id,

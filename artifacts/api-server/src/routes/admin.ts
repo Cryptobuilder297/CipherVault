@@ -2,9 +2,9 @@ import { Router } from "express";
 import { db, usersTable, depositsTable, withdrawalsTable, investmentPlansTable, userInvestmentsTable } from "@workspace/db";
 import { eq, sum, count, desc, and } from "drizzle-orm";
 import { requireAdmin } from "../middlewares/requireAuth";
+import { sendDepositApprovedEmail } from "../services/email";
 
 const router = Router();
-
 const REFERRAL_BONUS = 50;
 
 router.get("/admin/stats", requireAdmin, async (req, res) => {
@@ -74,23 +74,28 @@ router.patch("/admin/deposits/:id", requireAdmin, async (req, res) => {
       const newBalance = parseFloat(user.balance) + parseFloat(dep.amount);
       await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, user.id));
 
-      // Referral bonus: credit referrer $50 on referred user's FIRST deposit approval
+      // Referral bonus: credit $50 to referrer on first deposit approval
       if (user.referredBy) {
         const [prevApproved] = await db
           .select({ count: count() })
           .from(depositsTable)
           .where(and(eq(depositsTable.userId, user.id), eq(depositsTable.status, "approved")));
-
         if ((prevApproved?.count ?? 0) === 0) {
           const [referrer] = await db.select().from(usersTable).where(eq(usersTable.id, user.referredBy));
           if (referrer) {
             const newReferrerBalance = parseFloat(referrer.balance) + REFERRAL_BONUS;
-            await db.update(usersTable)
-              .set({ balance: String(newReferrerBalance) })
-              .where(eq(usersTable.id, referrer.id));
+            await db.update(usersTable).set({ balance: String(newReferrerBalance) }).where(eq(usersTable.id, referrer.id));
           }
         }
       }
+
+      // Send deposit approved email notification
+      await sendDepositApprovedEmail({
+        to: user.email,
+        amount: parseFloat(dep.amount),
+        method: dep.method,
+        newBalance,
+      });
     }
   }
 
@@ -178,8 +183,7 @@ router.get("/admin/investments", requireAdmin, async (req, res) => {
 router.post("/admin/plans", requireAdmin, async (req, res) => {
   const { name, description, minAmount, maxAmount, returnPercent, durationDays } = req.body;
   const [plan] = await db.insert(investmentPlansTable).values({
-    name,
-    description,
+    name, description,
     minAmount: String(minAmount),
     maxAmount: maxAmount ? String(maxAmount) : null,
     returnPercent: String(returnPercent),

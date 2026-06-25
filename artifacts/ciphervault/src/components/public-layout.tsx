@@ -25,27 +25,23 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground dark flex flex-col">
       {/* Top Navigation */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
           <Link href="/">
             <div className="flex items-center gap-2.5 cursor-pointer">
-              <img src={`${basePath}/logo.svg`} alt="CipherVault" className="w-7 h-7" />
-              <span className="font-bold text-lg text-foreground" style={{ fontFamily: "'Syne', sans-serif" }}>
-                CipherVault
-              </span>
+              <img src={`${basePath}/logo.svg`} alt="CipherVault" className="w-6 h-6" />
+              <span className="font-bold text-[15px] text-foreground tracking-tight">CipherVault</span>
             </div>
           </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-0.5">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href}>
                 <span className={cn(
-                  "px-4 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer",
+                  "px-3.5 py-2 rounded-md text-[13px] font-medium transition-colors cursor-pointer",
                   location === link.href
-                    ? "text-primary bg-primary/10"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    ? "text-foreground bg-white/8"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                 )}>
                   {link.label}
                 </span>
@@ -53,24 +49,22 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
-          {/* CTA Buttons */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
             <Show when="signed-in">
               <Link href="/dashboard">
-                <Button size="sm" variant="outline">Dashboard</Button>
+                <Button size="sm" variant="outline" className="text-[13px]">Dashboard</Button>
               </Link>
             </Show>
             <Show when="signed-out">
               <Link href="/sign-in">
-                <Button size="sm" variant="ghost">Sign In</Button>
+                <Button size="sm" variant="ghost" className="text-[13px]">Sign In</Button>
               </Link>
               <Link href="/sign-up">
-                <Button size="sm">Get Started</Button>
+                <Button size="sm" className="text-[13px]">Get Started</Button>
               </Link>
             </Show>
           </div>
 
-          {/* Mobile menu toggle */}
           <button
             className="md:hidden p-2 rounded-md text-muted-foreground hover:text-foreground"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -79,15 +73,14 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        {/* Mobile Menu */}
         {menuOpen && (
-          <div className="md:hidden border-t border-border bg-background px-6 py-4 space-y-1">
+          <div className="md:hidden border-t border-border bg-background px-6 py-4 space-y-0.5">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href}>
                 <div
                   className={cn(
-                    "block px-3 py-2.5 rounded-md text-sm font-medium transition-colors cursor-pointer",
-                    location === link.href ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
+                    "block px-3 py-2.5 rounded-md text-[13px] font-medium transition-colors cursor-pointer",
+                    location === link.href ? "text-foreground bg-white/8" : "text-muted-foreground hover:text-foreground"
                   )}
                   onClick={() => setMenuOpen(false)}
                 >
@@ -95,7 +88,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                 </div>
               </Link>
             ))}
-            <div className="pt-3 border-t border-border flex flex-col gap-2">
+            <div className="pt-3 border-t border-border flex flex-col gap-2 mt-2">
               {isSignedIn ? (
                 <Link href="/dashboard"><Button className="w-full" size="sm">Dashboard</Button></Link>
               ) : (
@@ -109,10 +102,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
         )}
       </header>
 
-      <main className="flex-1">
-        {children}
-      </main>
-
+      <main className="flex-1">{children}</main>
       <Footer />
     </div>
   );

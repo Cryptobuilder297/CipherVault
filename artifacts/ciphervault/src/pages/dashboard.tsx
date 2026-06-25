@@ -1,4 +1,5 @@
 import { useGetPortfolioSummary, useListTransactions, useGetMe } from "@workspace/api-client-react";
+import PortfolioGrowthChart from "@/components/portfolio-growth-chart";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUpRight, ArrowDownRight, Activity, Wallet, TrendingUp, ArrowDownCircle } from "lucide-react";
@@ -118,6 +119,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <PortfolioGrowthChart />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="bg-card/50 border-border">

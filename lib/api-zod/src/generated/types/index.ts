@@ -24,6 +24,7 @@ export * from './investmentPlan';
 export * from './marketCoin';
 export * from './planInput';
 export * from './planUpdate';
+export * from './portfolioGrowthPoint';
 export * from './portfolioSummary';
 export * from './referralStats';
 export * from './statusUpdate';

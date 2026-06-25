@@ -405,6 +405,23 @@ paths:
                 items:
                   $ref: "#/components/schemas/InvestmentPlan"
 
+  /investments/growth:
+    get:
+      operationId: getInvestmentGrowth
+      tags: [investments]
+      summary: Get portfolio value over time (past + future projection)
+      responses:
+        "200":
+          description: Portfolio growth data points
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PortfolioGrowthPoint"
+        "401":
+          description: Unauthorized
+
   /investments:
     get:
       operationId: listMyInvestments
@@ -1158,3 +1175,18 @@ components:
         completedAt:
           type: ["string", "null"]
           format: date-time
+
+    PortfolioGrowthPoint:
+      type: object
+      required: [date, totalValue, cashBalance, investedValue, isFuture]
+      properties:
+        date:
+          type: string
+        totalValue:
+          type: number
+        cashBalance:
+          type: number
+        investedValue:
+          type: number
+        isFuture:
+          type: boolean

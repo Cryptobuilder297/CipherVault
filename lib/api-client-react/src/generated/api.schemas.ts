@@ -306,3 +306,11 @@ export interface AdminInvestment {
   completedAt?: string | null;
 }
 
+export interface PortfolioGrowthPoint {
+  date: string;
+  totalValue: number;
+  cashBalance: number;
+  investedValue: number;
+  isFuture: boolean;
+}
+

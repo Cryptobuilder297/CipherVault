@@ -351,6 +351,19 @@ export const ListPlansResponse = zod.array(ListPlansResponseItem)
 
 
 /**
+ * @summary Get portfolio value over time (past + future projection)
+ */
+export const GetInvestmentGrowthResponseItem = zod.object({
+  "date": zod.string(),
+  "totalValue": zod.number(),
+  "cashBalance": zod.number(),
+  "investedValue": zod.number(),
+  "isFuture": zod.boolean()
+})
+export const GetInvestmentGrowthResponse = zod.array(GetInvestmentGrowthResponseItem)
+
+
+/**
  * @summary List my investments
  */
 export const ListMyInvestmentsResponseItem = zod.object({

@@ -37,6 +37,7 @@ import type {
   MarketCoin,
   PlanInput,
   PlanUpdate,
+  PortfolioGrowthPoint,
   PortfolioSummary,
   ReferralStats,
   StatusUpdate,
@@ -1760,6 +1761,83 @@ export function useListPlans<TData = Awaited<ReturnType<typeof listPlans>>, TErr
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListPlansQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInvestmentGrowthUrl = () => {
+
+
+
+
+  return `/api/investments/growth`
+}
+
+/**
+ * @summary Get portfolio value over time (past + future projection)
+ */
+export const getInvestmentGrowth = async ( options?: RequestInit): Promise<PortfolioGrowthPoint[]> => {
+
+  return customFetch<PortfolioGrowthPoint[]>(getGetInvestmentGrowthUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInvestmentGrowthQueryKey = () => {
+    return [
+    `/api/investments/growth`
+    ] as const;
+    }
+
+
+export const getGetInvestmentGrowthQueryOptions = <TData = Awaited<ReturnType<typeof getInvestmentGrowth>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestmentGrowth>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInvestmentGrowthQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInvestmentGrowth>>> = ({ signal }) => getInvestmentGrowth({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInvestmentGrowth>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInvestmentGrowthQueryResult = NonNullable<Awaited<ReturnType<typeof getInvestmentGrowth>>>
+export type GetInvestmentGrowthQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get portfolio value over time (past + future projection)
+ */
+
+export function useGetInvestmentGrowth<TData = Awaited<ReturnType<typeof getInvestmentGrowth>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestmentGrowth>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInvestmentGrowthQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

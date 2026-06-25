@@ -60,6 +60,11 @@ router.get("/investments/growth", requireAuth, async (req, res) => {
   const user = req.localUser;
   if (!user) { res.status(404).json({ error: "User not provisioned" }); return; }
 
+  await processMaturities(user.id);
+
+  const [freshUser] = await db.select().from(usersTable).where(eq(usersTable.id, user.id));
+  if (!freshUser) { res.status(404).json({ error: "User not found" }); return; }
+
   const rows = await db
     .select({ inv: userInvestmentsTable })
     .from(userInvestmentsTable)
@@ -74,7 +79,7 @@ router.get("/investments/growth", requireAuth, async (req, res) => {
     completedAt: r.inv.completedAt ?? null,
   }));
 
-  const currentBalance = parseFloat(user.balance);
+  const currentBalance = parseFloat(freshUser.balance);
   const now = new Date();
 
   // Generate points: 90 days back to furthest active maturity or +90 days

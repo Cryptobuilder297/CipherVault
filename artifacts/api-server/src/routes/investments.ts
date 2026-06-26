@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, userInvestmentsTable, investmentPlansTable, usersTable } from "@workspace/db";
+import { db, userInvestmentsTable, investmentPlansTable, usersTable, notificationsTable } from "@workspace/db";
 import { eq, desc, and, lte } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 import { sendInvestmentMaturedEmail } from "../services/email";
@@ -43,6 +43,14 @@ async function processMaturities(userId: number) {
     const [plan] = await db.select().from(investmentPlansTable).where(eq(investmentPlansTable.id, inv.planId));
     const amount = parseFloat(inv.amount);
     const expectedReturn = parseFloat(inv.expectedReturn);
+
+    // In-app notification
+    await db.insert(notificationsTable).values({
+      userId,
+      type: "investment_matured",
+      title: "Investment Matured — Return Credited 🎉",
+      message: `Your ${plan?.name ?? "investment"} of $${amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} has matured. $${expectedReturn.toLocaleString("en-US", { minimumFractionDigits: 2 })} has been credited to your vault.`,
+    });
 
     // Send maturity email notification
     await sendInvestmentMaturedEmail({

@@ -9,6 +9,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: notifications
+    description: In-app notification operations
   - name: market
     description: Market data operations
   - name: portfolio
@@ -404,6 +406,57 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/InvestmentPlan"
+
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List my notifications
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AppNotification"
+        "401":
+          description: Unauthorized
+
+  /notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "204":
+          description: Marked read
+        "401":
+          description: Unauthorized
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a single notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppNotification"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
 
   /investments/growth:
     get:
@@ -1174,6 +1227,26 @@ components:
           format: date-time
         completedAt:
           type: ["string", "null"]
+          format: date-time
+
+    AppNotification:
+      type: object
+      required: [id, userId, type, title, message, isRead, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
           format: date-time
 
     PortfolioGrowthPoint:

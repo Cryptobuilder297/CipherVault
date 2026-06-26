@@ -6,3 +6,4 @@ export * from "./deposits";
 export * from "./withdrawals";
 export * from "./investmentPlans";
 export * from "./userInvestments";
+export * from "./notifications";

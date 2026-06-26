@@ -12,6 +12,7 @@ import plansRouter from "./plans";
 import investmentsRouter from "./investments";
 import adminRouter from "./admin";
 import referralsRouter from "./referrals";
+import notificationsRouter from "./notifications";
 
 const router: IRouter = Router();
 
@@ -28,5 +29,6 @@ router.use(plansRouter);
 router.use(investmentsRouter);
 router.use(adminRouter);
 router.use(referralsRouter);
+router.use(notificationsRouter);
 
 export default router;

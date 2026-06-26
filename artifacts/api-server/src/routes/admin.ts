@@ -1,8 +1,12 @@
 import { Router } from "express";
-import { db, usersTable, depositsTable, withdrawalsTable, investmentPlansTable, userInvestmentsTable } from "@workspace/db";
+import { db, usersTable, depositsTable, withdrawalsTable, investmentPlansTable, userInvestmentsTable, notificationsTable } from "@workspace/db";
 import { eq, sum, count, desc, and } from "drizzle-orm";
 import { requireAdmin } from "../middlewares/requireAuth";
 import { sendDepositApprovedEmail } from "../services/email";
+
+async function createNotification(userId: number, type: string, title: string, message: string) {
+  await db.insert(notificationsTable).values({ userId, type, title, message });
+}
 
 const router = Router();
 const REFERRAL_BONUS = 50;
@@ -96,7 +100,24 @@ router.patch("/admin/deposits/:id", requireAdmin, async (req, res) => {
         method: dep.method,
         newBalance,
       });
+
+      // In-app notification
+      await createNotification(
+        dep.userId,
+        "deposit_approved",
+        "Deposit Approved ✓",
+        `Your deposit of $${parseFloat(dep.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })} has been approved. New balance: $${newBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })}.`
+      );
     }
+  }
+
+  if (status === "rejected" && dep.status !== "rejected") {
+    await createNotification(
+      dep.userId,
+      "deposit_rejected",
+      "Deposit Rejected",
+      `Your deposit request of $${parseFloat(dep.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })} was not approved. Please contact support if you have questions.`
+    );
   }
 
   const updates: Partial<typeof depositsTable.$inferInsert> = { status, updatedAt: new Date() };
@@ -138,11 +159,24 @@ router.patch("/admin/withdrawals/:id", requireAdmin, async (req, res) => {
   const [wit] = await db.select().from(withdrawalsTable).where(eq(withdrawalsTable.id, id));
   if (!wit) { res.status(404).json({ error: "Not found" }); return; }
 
-  if (status === "rejected" && wit.status === "pending") {
+  if (status === "approved" && wit.status !== "approved") {
+    await createNotification(
+      wit.userId,
+      "withdrawal_approved",
+      "Withdrawal Approved ✓",
+      `Your withdrawal of $${parseFloat(wit.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })} has been approved and is being processed.`
+    );
+  } else if (status === "rejected" && wit.status === "pending") {
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, wit.userId));
     if (user) {
       const newBalance = parseFloat(user.balance) + parseFloat(wit.amount);
       await db.update(usersTable).set({ balance: String(newBalance) }).where(eq(usersTable.id, user.id));
+      await createNotification(
+        wit.userId,
+        "withdrawal_rejected",
+        "Withdrawal Rejected — Balance Refunded",
+        `Your withdrawal request of $${parseFloat(wit.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })} was rejected. The amount has been returned to your vault.`
+      );
     }
   }
 

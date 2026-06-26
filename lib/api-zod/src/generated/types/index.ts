@@ -12,6 +12,7 @@ export * from './adminStats';
 export * from './adminUser';
 export * from './adminUserUpdate';
 export * from './adminWithdrawal';
+export * from './appNotification';
 export * from './deposit';
 export * from './depositInput';
 export * from './healthStatus';

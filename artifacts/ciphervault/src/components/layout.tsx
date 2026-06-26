@@ -6,6 +6,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useClerk, useUser, Show } from "@clerk/react";
 import { useGetMe } from "@workspace/api-client-react";
+import { NotificationBell } from "@/components/notification-bell";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";
 
@@ -106,6 +107,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <span className="text-[12px] text-muted-foreground hidden md:block">
                 {user?.primaryEmailAddress?.emailAddress}
               </span>
+              <NotificationBell />
               <Button
                 variant="outline"
                 size="sm"

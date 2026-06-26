@@ -351,6 +351,39 @@ export const ListPlansResponse = zod.array(ListPlansResponseItem)
 
 
 /**
+ * @summary List my notifications
+ */
+export const ListNotificationsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "type": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "isRead": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+export const ListNotificationsResponse = zod.array(ListNotificationsResponseItem)
+
+
+/**
+ * @summary Mark a single notification as read
+ */
+export const MarkNotificationReadParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const MarkNotificationReadResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "type": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "isRead": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
  * @summary Get portfolio value over time (past + future projection)
  */
 export const GetInvestmentGrowthResponseItem = zod.object({

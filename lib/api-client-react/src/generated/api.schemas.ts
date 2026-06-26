@@ -306,6 +306,16 @@ export interface AdminInvestment {
   completedAt?: string | null;
 }
 
+export interface AppNotification {
+  id: number;
+  userId: number;
+  type: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
 export interface PortfolioGrowthPoint {
   date: string;
   totalValue: number;

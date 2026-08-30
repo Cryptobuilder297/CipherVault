@@ -1,4 +1,5 @@
 {
+  "framework": "vite",
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm --filter @workspace/ciphervault run build",
   "outputDirectory": "artifacts/ciphervault/dist",

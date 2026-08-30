@@ -19,7 +19,7 @@ run = "pnpm --filter @workspace/ciphervault run dev"
 
 [services.production]
 build = [ "pnpm", "--filter", "@workspace/ciphervault", "run", "build" ]
-publicDir = "dist"
+publicDir = "artifacts/ciphervault/dist"
 serve = "static"
 
 [[services.production.rewrites]]
